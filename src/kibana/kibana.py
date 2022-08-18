@@ -51,6 +51,11 @@ class kibana:
     def post_rule_import(self, rule):
         self._post("/detection_engine/rules/_import", rule)
 
+    def post_close_alert(self, signal_ids):
+        payload = {"signal_ids": signal_ids,
+                   "status": "closed"}
+        self._post("/detection_engine/signals/status", payload)
+
     def _get(self, url, params={}):
         url = self.base_url + url
         return requests.get(url,
