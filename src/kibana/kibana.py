@@ -56,6 +56,11 @@ class kibana:
                    "status": "closed"}
         self._post("/detection_engine/signals/status", payload)
 
+    def post_ack_alert(self, signal_ids):
+        payload = {"signal_ids": signal_ids,
+                   "status": "in-progress"}
+        self._post("/detection_engine/signals/status", payload)
+
     def _get(self, url, params={}):
         url = self.base_url + url
         return requests.get(url,
