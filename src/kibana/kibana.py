@@ -103,6 +103,13 @@ class kibana:
         else:
             print("Rule ID Missing")
 
+    def get_dataview(self, view_id=None):
+        if view_id:
+            url = "/data_views/data_view/" + view_id
+            return self._get(url)
+        else:
+            print("View ID Missing")
+
     def get_exception_lists(self):
         return self._get_paginated("/exception_lists/_find")
 
