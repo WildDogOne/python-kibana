@@ -62,7 +62,7 @@ class kibana:
     def disable_rule(self, rule):
         payload = {"rule_id": rule,
                    "enabled": False}
-        self._patch("detection_engine/rules", payload)
+        self._patch("/detection_engine/rules", payload)
 
     def add_rule(self, rule):
         # self._post("/detection_engine/rules", rule)
