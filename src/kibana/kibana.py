@@ -44,11 +44,31 @@ class kibana:
             pprint(response.json())
             return False
 
-    def post_rule(self, rule):
+    def _patch(self, url, payload):
+        url = self.base_url + url
+        response = requests.patch(url,
+                                  headers=self.headers,
+                                  data=payload,
+                                  auth=HTTPBasicAuth(self.username, self.password))
+        if response.status_code == 200:
+            pprint(response.text)
+            return True
+        else:
+            print("error")
+            pprint(payload)
+            pprint(response.json())
+            return False
+
+    def disable_rule(self, rule):
+        payload = {"rule_id": rule,
+                   "enabled": False}
+        self._patch("detection_engine/rules", payload)
+
+    def add_rule(self, rule):
         # self._post("/detection_engine/rules", rule)
         self._post("/detection_engine/rules/_bulk_create", rule)
 
-    def post_rule_import(self, rule):
+    def add_rule_import(self, rule):
         self._post("/detection_engine/rules/_import", rule)
 
     def post_close_alert(self, signal_ids):
