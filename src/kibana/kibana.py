@@ -75,6 +75,25 @@ class kibana:
         else:
             pprint(response.status_code)
 
+    def _delete(self, url, headers=None):
+        if headers is None:
+            headers = {"Accept": "application/json", "kbn-xsrf": ""}
+        response = requests.request(
+            "DELETE",
+            url,
+            headers=headers,
+            verify=self.ssl_verify,
+            auth=HTTPBasicAuth(self.username, self.password),
+        )
+        if response.status_code == 200:
+            return response.text
+        elif response.status_code == 404:
+            logger.error(f"Error 404\n{response.url}")
+            logger.error(response.json())
+        else:
+            logger.error(response.status_code)
+            logger.error(response.json())
+
     def _post(self, url, payload=None, headers=None):
         if payload is None:
             payload = {}
@@ -117,9 +136,22 @@ class kibana:
             dataviews = self._get(url)
             for dataview in dataviews["data_view"]:
                 if "name" in dataview and dataview["name"] == dataview_id:
-                    return True
+                    return dataview and dataview["id"]
                 elif "title" in dataview and dataview["title"] == dataview_id:
-                    return True
+                    return dataview and dataview["id"]
             return False
+        else:
+            logger.error("No dataview id provided")
+
+    def delete_dataview(self, dataview_id=None, space_id="default"):
+        if dataview_id:
+            url = (
+                self.base_url
+                + "/s/"
+                + space_id
+                + "/api/data_views/data_view/"
+                + dataview_id
+            )
+            return self._delete(url)
         else:
             logger.error("No dataview id provided")
