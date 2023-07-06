@@ -75,6 +75,27 @@ class kibana:
         else:
             pprint(response.status_code)
 
+    def _put(self, url, payload=None, headers=None):
+        if payload is None:
+            payload = {}
+        if headers is None:
+            headers = {"Accept": "application/json", "kbn-xsrf": ""}
+        response = requests.request(
+            "PUT",
+            url,
+            headers=headers,
+            json=payload,
+            verify=self.ssl_verify,
+            auth=HTTPBasicAuth(self.username, self.password),
+        )
+        if response.status_code == 200:
+            return response.json()
+        elif response.status_code == 404:
+            logger.error(f"Error 404\n{response.url}")
+            logger.error(response.json())
+        else:
+            pprint(response.status_code)
+
     def _delete(self, url, headers=None):
         if headers is None:
             headers = {"Accept": "application/json", "kbn-xsrf": ""}
@@ -155,3 +176,33 @@ class kibana:
             return self._delete(url)
         else:
             logger.error("No dataview id provided")
+
+    def install_package(self, package_name=None, package_version=None):
+        if package_name:
+            url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
+            if package_version:
+                url = url + "/" + package_version
+            else:
+                package_version = self._get(url)["item"]["version"]
+                url = url + "/" + package_version
+            return self._post(url)
+        else:
+            logger.error("No Package Name provided")
+
+    def delete_package(self, package_name=None):
+        if package_name:
+            url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
+            package_version = self._get(url)["item"]["version"]
+            url = url + "/" + package_version
+            return self._delete(url)
+        else:
+            logger.error("No Package Name provided")
+
+    def update_package(self, package_name=None):
+        if package_name:
+            url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
+            package_version = self._get(url)["item"]["version"]
+            url = url + "/" + package_version
+            return self._put(url)
+        else:
+            logger.error("No Package Name provided")
