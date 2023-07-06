@@ -189,6 +189,17 @@ class kibana:
         else:
             logger.error("No Package Name provided")
 
+    def get_install_status(self, package_name=None):
+        if package_name:
+            url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
+            installed = self._get(url)["response"]["status"]
+            if installed == "installed":
+                return True
+            else:
+                return False
+        else:
+            logger.error("No Package Name provided")
+
     def delete_package(self, package_name=None):
         if package_name:
             url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
