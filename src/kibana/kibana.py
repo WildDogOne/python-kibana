@@ -130,7 +130,7 @@ class kibana:
         )
         pprint(response.status_code)
         if response.status_code == 200:
-            return True
+            return response
         elif response.status_code == 409:
             return True
         elif response.status_code == 404:
@@ -217,3 +217,98 @@ class kibana:
             return self._put(url)
         else:
             logger.error("No Package Name provided")
+
+    def create_agent_policy(self, name=None, namespace="default"):
+        if name:
+            url = self.base_url + "/api/fleet/agent_policies"
+
+            payload = {
+                "name": name,
+                "namespace": namespace,
+                "monitoring_enabled": ["metrics", "logs"],
+            }
+            return self._post(url, payload)
+        else:
+            logger.error("No Agent Policy Name provided")
+
+    def get_agent_policy(self, name=None):
+        if name:
+            url = self.base_url + "/api/fleet/agent_policies"
+            policies = self._get(url)
+            for policy in policies["items"]:
+                if policy["name"] == name:
+                    return policy
+            return False
+        else:
+            logger.error("No Agent Policy Name provided")
+
+    def delete_agent_policy(self, name=None):
+        if name:
+            policy = self.get_agent_policy(name)
+            if policy:
+                url = self.base_url + "/api/fleet/agent_policies/delete"
+
+                payload = {"agentPolicyId": policy["id"]}
+                return self._post(url, payload)
+            return False
+        else:
+            logger.error("No Agent Policy Name provided")
+
+    def get_package(self, package_name=None):
+        if package_name:
+            url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
+            return self._get(url)["response"]
+        else:
+            logger.error("No Package Name provided")
+
+    def create_package_policy(
+        self,
+        package_policy_name=None,
+        package_name=None,
+        namespace="default",
+        agent_policy=None,
+    ):
+        if package_policy_name:
+            url = self.base_url + "/api/fleet/package_policies"
+            agent_policy_id = self.get_agent_policy(name=agent_policy)["id"]
+            package = self.get_package(package_name=package_name)
+            return package["data_streams"][0]["streams"][0]
+
+            payload = {
+                "description": "",
+                "enabled": True,
+                "inputs": [
+                    {
+                        "enabled": True,
+                        "policy_template": "suricata",
+                        "streams": [package["data_streams"][0]["streams"][0]],
+                        "type": "logfile",
+                    }
+                ],
+                "name": package_policy_name,
+                "namespace": namespace,
+                "output_id": "",
+                "package": {
+                    "name": "suricata",
+                    "title": "Suricata Events",
+                    "version": "1.7.0",
+                },
+                "policy_id": agent_policy_id,
+            }
+            return self._post(url, payload)
+        else:
+            logger.error("No Package Policy Name provided")
+
+    def get_service_token(self, token_name=None, token_value=None):
+        url = self.base_url + "/api/fleet/service_tokens"
+        return self._post(url).json()["value"]
+
+    def get_enrollment_key(self, agent_policy_name=None):
+        if agent_policy_name:
+            url = self.base_url + "/api/fleet/enrollment_api_keys"
+            keys = self._get(url)
+            for key in keys["items"]:
+                if key["policy_id"] == agent_policy_name:
+                    return key["api_key"]
+        else:
+            logger.error("No Agent Policy Name provided")
