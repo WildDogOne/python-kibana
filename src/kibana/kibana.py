@@ -323,6 +323,8 @@ class kibana:
             for output in existing_outputs["items"]:
                 if output["name"] == output_name:
                     return output["id"]
+            else:
+                return False
         else:
             return False
 
