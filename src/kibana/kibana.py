@@ -303,9 +303,9 @@ class kibana:
         url = self.base_url + "/api/fleet/service_tokens"
         return self._post(url).json()["value"]
 
-    def get_enrollment_key(self, agent_policy_name=None):
+    def get_enrolment_key(self, agent_policy_name=None):
         if agent_policy_name:
-            url = self.base_url + "/api/fleet/enrollment_api_keys"
+            url = self.base_url + "/api/fleet/enrolment_api_keys"
             keys = self._get(url)
             for key in keys["items"]:
                 if key["policy_id"] == agent_policy_name:
