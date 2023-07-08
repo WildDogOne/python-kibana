@@ -317,6 +317,15 @@ class kibana:
         url = self.base_url + "/api/fleet/outputs"
         return self._get(url)
 
+    def get_fleet_output(self, output_name=None):
+        if output_name:
+            existing_outputs = self.get_fleet_outputs()
+            for output in existing_outputs["items"]:
+                if output["name"] == output_name:
+                    return output["id"]
+        else:
+            return False
+
     def create_fleet_output(
         self,
         type="elasticsearch",
@@ -359,11 +368,7 @@ class kibana:
         config_yaml=None,
     ):
         if output_name:
-            existing_outputs = self.get_fleet_outputs()
-            output_id = None
-            for output in existing_outputs["items"]:
-                if output["name"] == output_name:
-                    output_id = output["id"]
+            output_id = self.get_fleet_output(output_name)
             if output_id:
                 url = self.base_url + "/api/fleet/outputs/" + output_id
                 payload = {}
@@ -387,11 +392,7 @@ class kibana:
 
     def delete_fleet_output(self, output_name=None):
         if output_name:
-            existing_outputs = self.get_fleet_outputs()
-            output_id = None
-            for output in existing_outputs["items"]:
-                if output["name"] == output_name:
-                    output_id = output["id"]
+            output_id = self.get_fleet_output(output_name)
             if output_id:
                 url = self.base_url + "/api/fleet/outputs/" + output_id
                 return self._delete(url)
