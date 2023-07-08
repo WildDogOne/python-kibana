@@ -321,30 +321,31 @@ class kibana:
         self,
         type="elasticsearch",
         hosts=None,
-        output_id="fleet-default-output",
-        output_name="default",
+        output_id=None,
+        output_name=None,
         is_default=True,
         is_default_monitoring=True,
         ca_trusted_fingerprint=None,
         config_yaml=None,
     ):
-        if hosts:
+        if hosts and output_name:
             url = self.base_url + "/api/fleet/outputs"
             payload = {
-                "id": output_id,
                 "name": output_name,
                 "hosts": hosts,
                 "type": type,
                 "is_default": is_default,
                 "is_default_monitoring": is_default_monitoring,
             }
+            if output_id:
+                payload["id"] = output_id
             if config_yaml:
                 payload["config_yaml"] = config_yaml
             if ca_trusted_fingerprint:
                 payload["ca_sha256"] = ca_trusted_fingerprint
             return self._post(url, payload)
         else:
-            logger.error("No Hosts provided")
+            logger.error("No Hosts or output Name provided")
 
     def update_fleet_output(
         self,
@@ -359,6 +360,7 @@ class kibana:
     ):
         if output_name:
             existing_outputs = self.get_fleet_outputs()
+            output_id = None
             for output in existing_outputs["items"]:
                 if output["name"] == output_name:
                     output_id = output["id"]
@@ -378,6 +380,21 @@ class kibana:
                 if ca_trusted_fingerprint:
                     payload["ca_sha256"] = ca_trusted_fingerprint
                 return self._put(url, payload)
+            else:
+                logger.error("No Output ID found")
+        else:
+            logger.error("No Output Name provided")
+
+    def delete_fleet_output(self, output_name=None):
+        if output_name:
+            existing_outputs = self.get_fleet_outputs()
+            output_id = None
+            for output in existing_outputs["items"]:
+                if output["name"] == output_name:
+                    output_id = output["id"]
+            if output_id:
+                url = self.base_url + "/api/fleet/outputs/" + output_id
+                return self._delete(url)
             else:
                 logger.error("No Output ID found")
         else:
