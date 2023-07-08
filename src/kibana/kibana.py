@@ -305,8 +305,9 @@ class kibana:
 
     def get_enrolment_key(self, agent_policy_name=None):
         if agent_policy_name:
-            url = self.base_url + "/api/fleet/enrolment_api_keys"
+            url = self.base_url + "/api/fleet/enrollment_api_keys"
             keys = self._get(url)
+            #pprint(keys)
             for key in keys["items"]:
                 if key["policy_id"] == agent_policy_name:
                     return key["api_key"]
