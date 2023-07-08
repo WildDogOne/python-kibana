@@ -132,7 +132,7 @@ class kibana:
         if response.status_code == 200:
             return response
         elif response.status_code == 409:
-            return True
+            return response
         elif response.status_code == 404:
             logger.error(f"Error 404\n{response.url}")
             logger.error(response.json())
@@ -312,3 +312,73 @@ class kibana:
                     return key["api_key"]
         else:
             logger.error("No Agent Policy Name provided")
+
+    def get_fleet_outputs(self):
+        url = self.base_url + "/api/fleet/outputs"
+        return self._get(url)
+
+    def create_fleet_output(
+        self,
+        type="elasticsearch",
+        hosts=None,
+        output_id="fleet-default-output",
+        output_name="default",
+        is_default=True,
+        is_default_monitoring=True,
+        ca_trusted_fingerprint=None,
+        config_yaml=None,
+    ):
+        if hosts:
+            url = self.base_url + "/api/fleet/outputs"
+            payload = {
+                "id": output_id,
+                "name": output_name,
+                "hosts": hosts,
+                "type": type,
+                "is_default": is_default,
+                "is_default_monitoring": is_default_monitoring,
+            }
+            if config_yaml:
+                payload["config_yaml"] = config_yaml
+            if ca_trusted_fingerprint:
+                payload["ca_sha256"] = ca_trusted_fingerprint
+            return self._post(url, payload)
+        else:
+            logger.error("No Hosts provided")
+
+    def update_fleet_output(
+        self,
+        output_name=None,
+        type=None,
+        hosts=None,
+        output_id=None,
+        is_default=None,
+        is_default_monitoring=None,
+        ca_trusted_fingerprint=None,
+        config_yaml=None,
+    ):
+        if output_name:
+            existing_outputs = self.get_fleet_outputs()
+            for output in existing_outputs["items"]:
+                if output["name"] == output_name:
+                    output_id = output["id"]
+            if output_id:
+                url = self.base_url + "/api/fleet/outputs/" + output_id
+                payload = {}
+                if type:
+                    payload["type"] = type
+                if hosts:
+                    payload["hosts"] = hosts
+                if is_default is not None:
+                    payload["is_default"] = is_default
+                if is_default_monitoring is not None:
+                    payload["is_default_monitoring"] = is_default_monitoring
+                if config_yaml:
+                    payload["config_yaml"] = config_yaml
+                if ca_trusted_fingerprint:
+                    payload["ca_sha256"] = ca_trusted_fingerprint
+                return self._put(url, payload)
+            else:
+                logger.error("No Output ID found")
+        else:
+            logger.error("No Output Name provided")
