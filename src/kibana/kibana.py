@@ -426,9 +426,15 @@ class kibana:
                 go = 0
         return output_data
 
-    def bulk_change_rules(self, rule_ids=None, action="enable"):
+    def bulk_change_rules(self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None):
         if rule_ids:
             payload = {"ids": rule_ids, "action": action}
+            if query:
+                payload["query"] = query
+            if edit:
+                payload["edit"] = edit
+            if duplicate:
+                payload["duplicate"] = duplicate
             url = self.base_url + "/api/detection_engine/rules/_bulk_action"
             return self._post(url, payload)
         else:
