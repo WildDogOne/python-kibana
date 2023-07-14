@@ -449,3 +449,11 @@ class kibana:
             return self._post(url, payload)
         else:
             logger.error("No Job Name provided")
+
+    def disable_prebuild_ml_job(self, job_name=None):
+        url = self.base_url + "/api/ml/jobs/stop_datafeeds"
+        if job_name:
+            payload = {"datafeedIds": [f"datafeed-{job_name}"]}
+            return self._post(url, payload)
+        else:
+            logger.error("No Job Name provided")
