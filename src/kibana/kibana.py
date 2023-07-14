@@ -413,5 +413,23 @@ class kibana:
         return self._get(url)
 
     def get_all_rules(self):
-        url = self.base_url + "/api/detection_engine/rules/_find"
-        return self._get_pagination(url)
+        page = 1
+        go = 1
+        output_data = []
+        while go == 1:
+            url = self.base_url + "/api/detection_engine/rules/_find?page=" + str(page)
+            x = self._get(url)
+            if len(x["data"]) > 0:
+                output_data += x["data"]
+                page += 1
+            else:
+                go = 0
+        return output_data
+
+    def bulk_change_rules(self, rule_ids=None, action="enable"):
+        if rule_ids:
+            payload = {"ids": rule_ids, "action": action}
+            url = self.base_url + "/api/detection_engine/rules/_bulk_action"
+            return self._post(url, payload)
+        else:
+            logger.error("No Rules ids provided")
