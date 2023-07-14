@@ -307,7 +307,7 @@ class kibana:
         if agent_policy_name:
             url = self.base_url + "/api/fleet/enrollment_api_keys"
             keys = self._get(url)
-            #pprint(keys)
+            # pprint(keys)
             for key in keys["items"]:
                 if key["policy_id"] == agent_policy_name:
                     return key["api_key"]
@@ -404,12 +404,14 @@ class kibana:
         else:
             logger.error("No Output Name provided")
 
-
     def load_prebuilt_rules(self):
         url = self.base_url + "/api/detection_engine/rules/prepackaged"
         return self._put(url)
-    
+
     def get_prebuilt_rules_status(self):
         url = self.base_url + "/api/detection_engine/rules/prepackaged/_status"
         return self._get(url)
-    
+
+    def get_all_rules(self):
+        url = self.base_url + "/api/detection_engine/rules/_find"
+        return self._get_pagination(url)
