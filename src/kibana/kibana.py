@@ -403,3 +403,13 @@ class kibana:
                 logger.error("No Output ID found")
         else:
             logger.error("No Output Name provided")
+
+
+    def load_prebuilt_rules(self):
+        url = self.base_url + "/api/detection_engine/rules/prepackaged"
+        return self._put(url)
+    
+    def get_prebuilt_rules_status(self):
+        url = self.base_url + "/api/detection_engine/rules/prepackaged/_status"
+        return self._get(url)
+    
