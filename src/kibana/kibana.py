@@ -426,7 +426,9 @@ class kibana:
                 go = 0
         return output_data
 
-    def bulk_change_rules(self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None):
+    def bulk_change_rules(
+        self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
+    ):
         if rule_ids:
             payload = {"ids": rule_ids, "action": action}
             if query:
@@ -439,3 +441,11 @@ class kibana:
             return self._post(url, payload)
         else:
             logger.error("No Rules ids provided")
+
+    def enable_prebuild_ml_job(self, job_name=None):
+        url = self.base_url + "/api/ml/jobs/force_start_datafeeds"
+        if job_name:
+            payload = {"datafeedIds": [f"datafeed-{job_name}"]}
+            return self._post(url, payload)
+        else:
+            logger.error("No Job Name provided")
