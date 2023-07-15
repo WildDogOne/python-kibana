@@ -18,20 +18,18 @@ class kibana:
         self.password = password
         self.ssl_verify = ssl_verify
 
-    def _get_pagination(self, url, payload=None, headers=None):
-        if payload is None:
-            payload = {}
+    def _get_pagination(self, url, headers=None, params={}):
         if headers is None:
             headers = {"Accept": "application/json"}
         run = 1
         page = 1
+        output = []
         while run == 1:
-            params = {"perPage": 20, "page": page}
+            params["page"] = page
             response = requests.request(
                 "GET",
                 url,
                 headers=headers,
-                json=payload,
                 params=params,
                 verify=self.ssl_verify,
                 auth=HTTPBasicAuth(self.username, self.password),
@@ -39,19 +37,14 @@ class kibana:
             if response.status_code != 200:
                 logger.error("Cannot get")
                 logger.info(response)
-                quit()
+                return False
             else:
                 response = response.json()
-                total_pages = response["total"]
-                if total_pages >= page:
-                    if "output" in locals():
-                        output = output + response["items"]
-                    else:
-                        output = response["items"]
-                    page += 1
-                    logger.debug(f"Page Number {page} Total Pages: {total_pages}")
-                else:
+                if len(response["data"]) == 0:
                     run = 0
+                else:
+                    output += response["data"]
+                    page += 1
         return output
 
     def _get(self, url, payload=None, headers=None):
@@ -457,3 +450,54 @@ class kibana:
             return self._post(url, payload)
         else:
             logger.error("No Job Name provided")
+
+    def get_exception_container(self, container_name=None):
+        url = self.base_url + "/api/exception_lists/_find"
+        if container_name:
+            exception_containers = self._get_pagination(url)
+            for exception_container in exception_containers:
+                if container_name in exception_container["name"]:
+                    return exception_container
+            return False
+            # return exception_containers
+        else:
+            logger.error("No Container Name provided")
+
+    def create_exception_container(
+        self, container_name=None, container_type="detection", description=None
+    ):
+        url = self.base_url + "/api/exception_lists"
+        if container_name:
+            payload = {
+                "name": container_name,
+                "type": container_type,
+                "list_id": container_name.replace(" ", "_").lower(),
+            }
+            if description:
+                payload["description"] = description
+            else:
+                payload["description"] = container_name
+            return self._post(url, payload)
+        else:
+            logger.error("No Container Name provided")
+
+    def delete_exception_container(self, container_name=None, list_id=None):
+        if container_name and not list_id:
+            container = self.get_exception_container(container_name)
+            if container:
+                list_id = container["list_id"]
+            else:
+                logger.error("No Container found")
+        if list_id:
+            url = self.base_url + "/api/exception_lists?list_id=" + list_id
+            return self._delete(url)
+        else:
+            logger.error("No Container Name or List ID provided")
+    def attach_container_to_rule(self, container_name=None, rule_name=None, list_id=None):
+        if container_name and not list_id:
+            container = self.get_exception_container(container_name)
+            if container:
+                list_id = container["list_id"]
+            else:
+                logger.error("No Container found")
+        
