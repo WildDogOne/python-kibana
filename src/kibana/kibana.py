@@ -40,11 +40,20 @@ class kibana:
                 return False
             else:
                 response = response.json()
-                if len(response["list"]) == 0:
-                    run = 0
+                pagination_artefacts = ["data", "list", "items"]
+                pagination_artefact = False
+                for x in pagination_artefacts:
+                    if x in response:
+                        pagination_artefact = x
+                if pagination_artefact:
+                    if len(response[pagination_artefact]) == 0:
+                        run = 0
+                    else:
+                        output += response[pagination_artefact]
+                        page += 1
                 else:
-                    output += response["list"]
-                    page += 1
+                    print("Cannot find Pagination")
+                    return False
         return output
 
     def _get_pagination(self, url, headers=None, params={}):
@@ -271,6 +280,10 @@ class kibana:
             return policy
         else:
             logger.error("No Agent Policy Name provided")
+
+    def get_agent_policies(self, id=None):
+        url = self.base_url + "/api/fleet/agent_policies"
+        return self._get(url)
 
     def get_agents(self):
         url = self.base_url + "/api/fleet/agents"
