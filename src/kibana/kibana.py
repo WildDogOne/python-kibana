@@ -264,6 +264,14 @@ class kibana:
         else:
             logger.error("No Agent Policy Name provided")
 
+    def get_agent_policy_id(self, id=None):
+        if id:
+            url = self.base_url + "/api/fleet/agent_policies/" + id
+            policy = self._get(url)
+            return policy
+        else:
+            logger.error("No Agent Policy Name provided")
+
     def get_agents(self):
         url = self.base_url + "/api/fleet/agents"
         agents = self._get_pagination_fleet(url)
