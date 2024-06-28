@@ -299,9 +299,9 @@ class kibana:
         else:
             logger.error("No Package Name provided")
 
-    def get_packages(self, package_name=None):
+    def get_packages(self):
         url = self.base_url + "/api/fleet/epm/packages"
-        return self._get(url)["items"]
+        return self._get(url)
 
     def create_package_policy(
         self,
