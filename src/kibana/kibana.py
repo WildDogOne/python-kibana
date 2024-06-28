@@ -283,7 +283,7 @@ class kibana:
 
     def get_agent_policies(self, id=None):
         url = self.base_url + "/api/fleet/agent_policies"
-        return self._get(url)
+        return self._get_pagination_fleet(url)
 
     def get_agents(self):
         url = self.base_url + "/api/fleet/agents"
