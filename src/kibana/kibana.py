@@ -18,6 +18,35 @@ class kibana:
         self.password = password
         self.ssl_verify = ssl_verify
 
+    def _get_pagination_fleet(self, url, headers=None, params={"perPage": 20}):
+        if headers is None:
+            headers = {"Accept": "application/json"}
+        run = 1
+        page = 1
+        output = []
+        while run == 1:
+            params["page"] = page
+            response = requests.request(
+                "GET",
+                url,
+                headers=headers,
+                params=params,
+                verify=self.ssl_verify,
+                auth=HTTPBasicAuth(self.username, self.password),
+            )
+            if response.status_code != 200:
+                logger.error("Cannot get")
+                logger.info(response)
+                return False
+            else:
+                response = response.json()
+                if len(response["list"]) == 0:
+                    run = 0
+                else:
+                    output += response["list"]
+                    page += 1
+        return output
+
     def _get_pagination(self, url, headers=None, params={}):
         if headers is None:
             headers = {"Accept": "application/json"}
@@ -234,6 +263,14 @@ class kibana:
             return False
         else:
             logger.error("No Agent Policy Name provided")
+
+    def get_agents(self):
+        url = self.base_url + "/api/fleet/agents"
+        agents = self._get_pagination_fleet(url)
+        if len(agents) > 0:
+            return agents
+        else:
+            return False
 
     def delete_agent_policy(self, name=None):
         if name:
@@ -493,11 +530,13 @@ class kibana:
             return self._delete(url)
         else:
             logger.error("No Container Name or List ID provided")
-    def attach_container_to_rule(self, container_name=None, rule_name=None, list_id=None):
+
+    def attach_container_to_rule(
+        self, container_name=None, rule_name=None, list_id=None
+    ):
         if container_name and not list_id:
             container = self.get_exception_container(container_name)
             if container:
                 list_id = container["list_id"]
             else:
                 logger.error("No Container found")
-        
