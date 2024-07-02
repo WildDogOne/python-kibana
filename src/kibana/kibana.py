@@ -468,17 +468,8 @@ class kibana:
         return self._get(url)
 
     def get_all_rules(self):
-        page = 1
-        go = 1
-        output_data = []
-        while go == 1:
-            url = self.base_url + "/api/detection_engine/rules/_find?page=" + str(page)
-            x = self._get(url)
-            if len(x["data"]) > 0:
-                output_data += x["data"]
-                page += 1
-            else:
-                go = 0
+        url = self.base_url + "/api/detection_engine/rules/_find"
+        output_data = self._get_pagination(url)
         return output_data
 
     def bulk_change_rules(
