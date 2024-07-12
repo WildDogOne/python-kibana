@@ -556,3 +556,7 @@ class kibana:
                 list_id = container["list_id"]
             else:
                 logger.error("No Container found")
+
+    def post_close_alert(self, signal_ids):
+        payload = {"signal_ids": signal_ids, "status": "closed"}
+        self._post("/detection_engine/signals/status", payload)
