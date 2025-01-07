@@ -45,14 +45,23 @@ class kibana:
         output = []
         while run == 1:
             params["page"] = page
-            response = requests.request(
-                "GET",
-                url,
-                headers=headers,
-                params=params,
-                verify=self.ssl_verify,
-                auth=HTTPBasicAuth(self.username, self.password),
-            )
+            if self.api_key:
+                response = requests.request(
+                    "GET",
+                    url,
+                    headers=headers,
+                    params=params,
+                    verify=self.ssl_verify,
+                )
+            else:
+                response = requests.request(
+                    "GET",
+                    url,
+                    headers=headers,
+                    params=params,
+                    verify=self.ssl_verify,
+                    auth=HTTPBasicAuth(self.username, self.password),
+                )
             if response.status_code != 200:
                 logger.error("Cannot get")
                 logger.info(response)
@@ -441,16 +450,15 @@ class kibana:
 
     def get_all_rules(self):
         page = 1
-        go = 1
         output_data = []
-        while go == 1:
+        while True:
             url = self.base_url + "/api/detection_engine/rules/_find?page=" + str(page)
             x = self._get(url)
             if len(x["data"]) > 0:
                 output_data += x["data"]
                 page += 1
             else:
-                go = 0
+                break
         return output_data
 
     def bulk_change_rules(
