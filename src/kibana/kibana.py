@@ -151,19 +151,33 @@ class kibana:
             logger.error(response.status_code)
             logger.error(response.json())
 
-    def _post(self, url, payload=None, headers=None):
+    def _post(self, url, payload=None, headers=None, params=None):
         if payload is None:
             payload = {}
         if self.headers is None:
             headers = {"Accept": "application/json", "kbn-xsrf": ""}
-        response = requests.request(
-            "POST",
-            url,
-            headers=headers,
-            json=payload,
-            verify=self.ssl_verify,
-            auth=HTTPBasicAuth(self.username, self.password),
-        )
+        else:
+            headers = self.headers
+            headers["kbn-xsrf"] = ""
+        if self.api_key:
+            response = requests.request(
+                "POST",
+                url,
+                headers=headers,
+                json=payload,
+                verify=self.ssl_verify,
+                params=params,
+            )
+        else:
+            response = requests.request(
+                "POST",
+                url,
+                headers=headers,
+                json=payload,
+                verify=self.ssl_verify,
+                auth=HTTPBasicAuth(self.username, self.password),
+                params=params,
+            )
         pprint(response.status_code)
         if response.status_code == 200:
             return response
@@ -460,6 +474,19 @@ class kibana:
             else:
                 break
         return output_data
+
+    def get_all_exception_lists(self):
+        return self._get_pagination(self.base_url + "/api/exception_lists/_find")
+
+    def export_exception_list(self, id=None, list_id=None, namespace_type=None):
+        url = self.base_url + "/api/exception_lists/_export"
+        params = {"id": id, "list_id": list_id, "namespace_type": namespace_type}
+        results = self._post(url, params=params)
+        outputs = []
+        for result in results.text.split("\n"):
+            if len(result) > 0:
+                outputs.append(json.loads(result))
+        return outputs
 
     def bulk_change_rules(
         self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
