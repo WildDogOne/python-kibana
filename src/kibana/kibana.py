@@ -12,15 +12,34 @@ logger.setLevel(logging.INFO)
 
 
 class kibana:
-    def __init__(self, base_url="", username="", password="", ssl_verify=True):
-        self.base_url = base_url
-        self.username = username
-        self.password = password
+    def __init__(
+        self, base_url=None, username=None, password=None, api_key=None, ssl_verify=True
+    ):
+        if not api_key and (not username and not password):
+            raise ValueError("No API Key or Username/Password provided")
+        if not base_url:
+            raise ValueError("No Base URL provided")
+        else:
+            self.base_url = base_url
+        if username:
+            self.username = username
+        if password:
+            self.password = password
+        if api_key:
+            self.headers = {
+                "Authorization": f"ApiKey {api_key}",
+                "Accept": "application/json",
+            }
+            self.api_key = True
+        else:
+            self.api_key = False
         self.ssl_verify = ssl_verify
 
     def _get_pagination(self, url, headers=None, params={}):
-        if headers is None:
+        if self.headers is None:
             headers = {"Accept": "application/json"}
+        else:
+            headers = self.headers
         run = 1
         page = 1
         output = []
@@ -50,16 +69,27 @@ class kibana:
     def _get(self, url, payload=None, headers=None):
         if payload is None:
             payload = {}
-        if headers is None:
+        if self.headers is None:
             headers = {"Accept": "application/json"}
-        response = requests.request(
-            "GET",
-            url,
-            headers=headers,
-            json=payload,
-            verify=self.ssl_verify,
-            auth=HTTPBasicAuth(self.username, self.password),
-        )
+        else:
+            headers = self.headers
+        if self.api_key:
+            response = requests.request(
+                "GET",
+                url,
+                headers=headers,
+                json=payload,
+                verify=self.ssl_verify,
+            )
+        else:
+            response = requests.request(
+                "GET",
+                url,
+                headers=headers,
+                json=payload,
+                verify=self.ssl_verify,
+                auth=HTTPBasicAuth(self.username, self.password),
+            )
         if response.status_code == 200:
             return response.json()
         elif response.status_code == 404:
@@ -71,8 +101,10 @@ class kibana:
     def _put(self, url, payload=None, headers=None):
         if payload is None:
             payload = {}
-        if headers is None:
+        if self.headers is None:
             headers = {"Accept": "application/json", "kbn-xsrf": ""}
+        else:
+            headers = self.headers
         response = requests.request(
             "PUT",
             url,
@@ -90,8 +122,10 @@ class kibana:
             pprint(response.status_code)
 
     def _delete(self, url, headers=None):
-        if headers is None:
+        if self.headers is None:
             headers = {"Accept": "application/json", "kbn-xsrf": ""}
+        else:
+            headers = self.headers
         response = requests.request(
             "DELETE",
             url,
@@ -111,7 +145,7 @@ class kibana:
     def _post(self, url, payload=None, headers=None):
         if payload is None:
             payload = {}
-        if headers is None:
+        if self.headers is None:
             headers = {"Accept": "application/json", "kbn-xsrf": ""}
         response = requests.request(
             "POST",
@@ -493,11 +527,13 @@ class kibana:
             return self._delete(url)
         else:
             logger.error("No Container Name or List ID provided")
-    def attach_container_to_rule(self, container_name=None, rule_name=None, list_id=None):
+
+    def attach_container_to_rule(
+        self, container_name=None, rule_name=None, list_id=None
+    ):
         if container_name and not list_id:
             container = self.get_exception_container(container_name)
             if container:
                 list_id = container["list_id"]
             else:
                 logger.error("No Container found")
-        
