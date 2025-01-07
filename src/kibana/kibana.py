@@ -75,7 +75,7 @@ class kibana:
                     page += 1
         return output
 
-    def _get(self, url, payload=None, headers=None):
+    def _get(self, url, payload=None, headers=None, params=None):
         if payload is None:
             payload = {}
         if self.headers is None:
@@ -89,6 +89,7 @@ class kibana:
                 headers=headers,
                 json=payload,
                 verify=self.ssl_verify,
+                params=params,
             )
         else:
             response = requests.request(
@@ -98,6 +99,7 @@ class kibana:
                 json=payload,
                 verify=self.ssl_verify,
                 auth=HTTPBasicAuth(self.username, self.password),
+                params=params,
             )
         if response.status_code == 200:
             return response.json()
@@ -178,7 +180,6 @@ class kibana:
                 auth=HTTPBasicAuth(self.username, self.password),
                 params=params,
             )
-        pprint(response.status_code)
         if response.status_code == 200:
             return response
         elif response.status_code == 409:
@@ -461,6 +462,11 @@ class kibana:
     def get_prebuilt_rules_status(self):
         url = self.base_url + "/api/detection_engine/rules/prepackaged/_status"
         return self._get(url)
+
+    def get_rule(self, rule_id):
+        url = self.base_url + "/api/detection_engine/rules"
+        params = {"id": rule_id}
+        return self._get(url, params=params)
 
     def get_all_rules(self):
         page = 1
