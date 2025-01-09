@@ -579,6 +579,43 @@ class kibana:
             else:
                 logger.error("No Container found")
 
+    def post_get_alerts(
+        self,
+        filter_closed: bool = True,
+        fields: dict = None,
+        size: int = 1000,
+        filter_terms: dict = None,
+    ):
+        url = self.base_url + "/api/detection_engine/signals/search"
+        print(url)
+        payload = {
+            "_source": True,
+            "aggs": {},
+            # "fields": ["string"],
+            "runtime_mappings": {},
+            "size": size,
+            # "sort": "string",
+            "track_total_hits": True,
+            "query": {"bool": {}},
+        }
+        if filter_closed:
+            payload["query"]["bool"]["must_not"] = [
+                {"match_phrase": {"signal.status": "closed"}}
+            ]
+        if filter_terms:
+            payload["query"]["bool"]["filter"] = [{"terms": filter_terms}]
+        if fields:
+            if not isinstance(fields, list):
+                fields = [fields]
+            payload["fields"] = fields
+            payload["_source"] = False
+
+        results = self._post(url, payload=payload)
+        if results.status_code == 200:
+            return results.json()["hits"]["hits"]
+        else:
+            return results
+
     def post_close_alert(self, signal_ids):
         url = self.base_url + "/api/detection_engine/signals/status"
         payload = {"signal_ids": signal_ids, "status": "closed"}
