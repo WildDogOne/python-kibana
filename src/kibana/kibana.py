@@ -603,7 +603,12 @@ class kibana:
                 {"match_phrase": {"signal.status": "closed"}}
             ]
         if filter_terms:
-            payload["query"]["bool"]["filter"] = [{"terms": filter_terms}]
+            filter_list = []
+            for field, values in filter_terms.items():
+                filter_list.append(
+                    {"terms": {field: values if isinstance(values, list) else [values]}}
+                )
+            payload["query"]["bool"]["filter"] = filter_list
         if fields:
             if not isinstance(fields, list):
                 fields = [fields]
