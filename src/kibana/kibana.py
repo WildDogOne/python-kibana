@@ -13,7 +13,13 @@ logger.setLevel(logging.INFO)
 
 class kibana:
     def __init__(
-        self, base_url=None, username=None, password=None, api_key=None, ssl_verify=True
+        self,
+        base_url=None,
+        username=None,
+        password=None,
+        api_key=None,
+        ssl_verify=True,
+        headers=None,
     ):
         if not api_key and (not username and not password):
             raise ValueError("No API Key or Username/Password provided")
@@ -34,6 +40,7 @@ class kibana:
         else:
             self.api_key = False
         self.ssl_verify = ssl_verify
+        self.headers = headers
 
     def _get_pagination(self, url, headers=None, params={}):
         if self.headers is None:
