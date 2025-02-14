@@ -480,6 +480,10 @@ class kibana:
         url = self.base_url + "/api/detection_engine/rules/prepackaged/_status"
         return self._get(url)
 
+    def get_detection_engine_tags(self):
+        url = self.base_url + "/api/detection_engine/tags"
+        return self._get(url)
+
     def get_rule(self, rule_id):
         url = self.base_url + "/api/detection_engine/rules"
         params = {"id": rule_id}
