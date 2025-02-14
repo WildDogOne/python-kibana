@@ -35,13 +35,13 @@ class kibana:
             self.headers = {
                 "Authorization": f"ApiKey {api_key}",
                 "Accept": "application/json",
+                "kbn-xsrf": "",
             }
             self.api_key = True
         else:
             self.headers = headers
             self.api_key = False
         self.ssl_verify = ssl_verify
-        
 
     def _get_pagination(self, url, headers=None, params={}):
         if self.headers is None:
@@ -124,14 +124,23 @@ class kibana:
             headers = {"Accept": "application/json", "kbn-xsrf": ""}
         else:
             headers = self.headers
-        response = requests.request(
-            "PUT",
-            url,
-            headers=headers,
-            json=payload,
-            verify=self.ssl_verify,
-            auth=HTTPBasicAuth(self.username, self.password),
-        )
+        if self.api_key:
+            response = requests.request(
+                "PUT",
+                url,
+                headers=headers,
+                json=payload,
+                verify=self.ssl_verify,
+            )
+        else:
+            response = requests.request(
+                "PUT",
+                url,
+                headers=headers,
+                json=payload,
+                verify=self.ssl_verify,
+                auth=HTTPBasicAuth(self.username, self.password),
+            )
         if response.status_code == 200:
             return response.json()
         elif response.status_code == 404:
