@@ -38,9 +38,10 @@ class kibana:
             }
             self.api_key = True
         else:
+            self.headers = headers
             self.api_key = False
         self.ssl_verify = ssl_verify
-        self.headers = headers
+        
 
     def _get_pagination(self, url, headers=None, params={}):
         if self.headers is None:
