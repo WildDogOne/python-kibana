@@ -493,6 +493,13 @@ class kibana:
         params = {"id": rule_id}
         return self._get(url, params=params)
 
+    def find_rule(self, rule_name: str = None):
+        url = self.base_url + "/api/detection_engine/rules/_find"
+        params = {}
+        if rule_name:
+            params["filter"] = f'alert.attributes.name:"{rule_name}"'
+        return self._get(url, params=params)
+
     def get_all_rules(self):
         page = 1
         output_data = []
@@ -600,17 +607,14 @@ class kibana:
         else:
             logger.error("No Job Name provided")
 
-    def get_exception_container(self, container_name=None):
-        url = self.base_url + "/api/exception_lists/_find"
-        if container_name:
-            exception_containers = self._get_pagination(url)
-            for exception_container in exception_containers:
-                if container_name in exception_container["name"]:
-                    return exception_container
-            return False
-            # return exception_containers
-        else:
-            logger.error("No Container Name provided")
+    def get_exception_container(self, id=None, list_id=None):
+        url = self.base_url + "/api/exception_lists"
+        params = {}
+        if id:
+            params["id"] = id
+        if list_id:
+            params["list_id"] = list_id
+        return self._get(url, params=params)
 
     def create_exception_container(
             self, container_name=None, container_type="detection", description=None
@@ -704,3 +708,37 @@ class kibana:
         url = self.base_url + "/api/detection_engine/signals/status"
         payload = {"signal_ids": signal_ids, "status": "in-progress"}
         self._post(url, payload)
+
+    def create_rule_exception_items(
+            self: object,
+            rule_id: str,
+            items: list[dict[str, any]],
+            space: str | None = None,
+    ) -> dict[str, any]:
+        """
+        Create exception items that apply to a single detection rule.
+
+        :param rule_id: The detection rule ID from the API (not rule name).
+        :param items: List of exception item definitions (same shape as in docs).
+        :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
+        :return: Parsed JSON response.
+        """
+        if space:
+            path = f"/s/{space}/api/detection_engine/rules/{rule_id}/exceptions"
+        else:
+            path = f"/api/detection_engine/rules/{rule_id}/exceptions"
+        url = self.base_url + path
+
+        headers = {
+            "kbn-xsrf": "true",
+            "Content-Type": "application/json",
+        }
+
+        body = {"items": items}
+
+        resp = self._post(
+            url,
+            headers=headers,
+            payload=body,
+        )
+        return resp.json()
