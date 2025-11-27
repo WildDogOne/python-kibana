@@ -9,6 +9,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+from pathlib import Path
 
 
 class kibana:
@@ -170,7 +171,7 @@ class kibana:
             logger.error(response.status_code)
             logger.error(response.json())
 
-    def _post(self, url, payload=None, headers=None, params=None):
+    def _post(self, url, payload=None, headers=None, params=None, files=None):
         if payload is None:
             payload = {}
         if self.headers is None:
@@ -196,7 +197,9 @@ class kibana:
                 verify=self.ssl_verify,
                 auth=HTTPBasicAuth(self.username, self.password),
                 params=params,
+                files=files
             )
+        # response.raise_for_status()
         if response.status_code == 200:
             return response
         elif response.status_code == 409:
@@ -514,6 +517,55 @@ class kibana:
             if len(result) > 0:
                 outputs.append(json.loads(result))
         return outputs
+
+    def import_exception_lists(
+            self: object,
+            ndjson_path: str,
+            overwrite: bool = False,
+            create_new_copy: bool = False,
+            space: str = None,
+            timeout: int = 30,
+    ) -> dict[str, any]:
+        """
+        Import exception lists and items from an NDJSON file into Kibana/Elastic Security.
+
+        :param ndjson_path: Path to NDJSON file exported from exception lists.
+        :param overwrite: If True, overwrite existing lists/items with same ids.
+        :param create_new_copy: If True, force new list_id/item_id values on import.
+        :param space: Optional Kibana space id; if given, path becomes '/s/{space}/api/...'.
+        :return: Parsed JSON response from the API.
+        """
+        ndjson_file = Path(ndjson_path)
+        if not ndjson_file.is_file():
+            raise FileNotFoundError(f"NDJSON file not found: {ndjson_file}")
+        if space:
+            path = f"/s/{space}/api/exception_lists/_import"
+        else:
+            path = "/api/exception_lists/_import"
+        url = self.base_url + path
+
+        params = {
+            "overwrite": str(overwrite).lower(),
+            "create_new_copy": str(create_new_copy).lower(),
+        }
+
+        headers = {
+            "kbn-xsrf": "true",
+        }
+
+        with ndjson_file.open("rb") as f:
+            files = {
+                "file": (ndjson_file.name, f, "application/x-ndjson"),
+            }
+            resp = self._post(
+                url,
+                headers=headers,
+                params=params,
+                files=files
+            )
+
+        # Raise for HTTP errors (401, 403, 500, etc.) [attached_file:1]
+        return resp.json()
 
     def bulk_change_rules(
             self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
