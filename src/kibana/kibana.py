@@ -13,13 +13,13 @@ logger.setLevel(logging.INFO)
 
 class kibana:
     def __init__(
-        self,
-        base_url=None,
-        username=None,
-        password=None,
-        api_key=None,
-        ssl_verify=True,
-        headers=None,
+            self,
+            base_url=None,
+            username=None,
+            password=None,
+            api_key=None,
+            ssl_verify=True,
+            headers=None,
     ):
         if not api_key and (not username and not password):
             raise ValueError("No API Key or Username/Password provided")
@@ -235,11 +235,11 @@ class kibana:
     def delete_dataview(self, dataview_id=None, space_id="default"):
         if dataview_id:
             url = (
-                self.base_url
-                + "/s/"
-                + space_id
-                + "/api/data_views/data_view/"
-                + dataview_id
+                    self.base_url
+                    + "/s/"
+                    + space_id
+                    + "/api/data_views/data_view/"
+                    + dataview_id
             )
             return self._delete(url)
         else:
@@ -330,11 +330,11 @@ class kibana:
             logger.error("No Package Name provided")
 
     def create_package_policy(
-        self,
-        package_policy_name=None,
-        package_name=None,
-        namespace="default",
-        agent_policy=None,
+            self,
+            package_policy_name=None,
+            package_name=None,
+            namespace="default",
+            agent_policy=None,
     ):
         if package_policy_name:
             url = self.base_url + "/api/fleet/package_policies"
@@ -398,15 +398,15 @@ class kibana:
             return False
 
     def create_fleet_output(
-        self,
-        type="elasticsearch",
-        hosts=None,
-        output_id=None,
-        output_name=None,
-        is_default=True,
-        is_default_monitoring=True,
-        ca_trusted_fingerprint=None,
-        config_yaml=None,
+            self,
+            type="elasticsearch",
+            hosts=None,
+            output_id=None,
+            output_name=None,
+            is_default=True,
+            is_default_monitoring=True,
+            ca_trusted_fingerprint=None,
+            config_yaml=None,
     ):
         if hosts and output_name:
             url = self.base_url + "/api/fleet/outputs"
@@ -428,15 +428,15 @@ class kibana:
             logger.error("No Hosts or output Name provided")
 
     def update_fleet_output(
-        self,
-        output_name=None,
-        type=None,
-        hosts=None,
-        output_id=None,
-        is_default=None,
-        is_default_monitoring=None,
-        ca_trusted_fingerprint=None,
-        config_yaml=None,
+            self,
+            output_name=None,
+            type=None,
+            hosts=None,
+            output_id=None,
+            is_default=None,
+            is_default_monitoring=None,
+            ca_trusted_fingerprint=None,
+            config_yaml=None,
     ):
         if output_name:
             output_id = self.get_fleet_output(output_name)
@@ -493,7 +493,7 @@ class kibana:
         page = 1
         output_data = []
         while True:
-            url = self.base_url + "/api/detection_engine/rules/_find?page=" + str(page)
+            url = self.base_url + "/api/detection_engine/rules/_find?per_page=100&page=" + str(page)
             x = self._get(url)
             if len(x["data"]) > 0:
                 output_data += x["data"]
@@ -516,7 +516,7 @@ class kibana:
         return outputs
 
     def bulk_change_rules(
-        self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
+            self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
     ):
         if rule_ids:
             payload = {"ids": rule_ids, "action": action}
@@ -560,7 +560,7 @@ class kibana:
             logger.error("No Container Name provided")
 
     def create_exception_container(
-        self, container_name=None, container_type="detection", description=None
+            self, container_name=None, container_type="detection", description=None
     ):
         url = self.base_url + "/api/exception_lists"
         if container_name:
@@ -591,7 +591,7 @@ class kibana:
             logger.error("No Container Name or List ID provided")
 
     def attach_container_to_rule(
-        self, container_name=None, rule_name=None, list_id=None
+            self, container_name=None, rule_name=None, list_id=None
     ):
         if container_name and not list_id:
             container = self.get_exception_container(container_name)
@@ -601,11 +601,11 @@ class kibana:
                 logger.error("No Container found")
 
     def post_get_alerts(
-        self,
-        filter_closed: bool = True,
-        fields: dict = None,
-        size: int = 1000,
-        filter_terms: dict = None,
+            self,
+            filter_closed: bool = True,
+            fields: dict = None,
+            size: int = 1000,
+            filter_terms: dict = None,
     ):
         url = self.base_url + "/api/detection_engine/signals/search"
         print(url)
