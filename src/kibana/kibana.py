@@ -187,6 +187,7 @@ class kibana:
                 json=payload,
                 verify=self.ssl_verify,
                 params=params,
+                files=files
             )
         else:
             response = requests.request(
