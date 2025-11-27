@@ -742,3 +742,33 @@ class kibana:
             payload=body,
         )
         return resp.json()
+
+    def get_saved_objects(
+            self: object,
+            type: str,
+            space: str | None = None,
+    ) -> list[dict, any]:
+        """
+        Create exception items that apply to a single detection rule.
+        :param type: Mandatory saved object type eg. dashboard.
+        :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
+        :return: Parsed JSON response.
+        """
+        if space:
+            path = f"/s/{space}/api/saved_objects/_find"
+        else:
+            path = f"/api/saved_objects/_find"
+        url = self.base_url + path
+        params = {"per_page": 100, "page": 1, "type": type}
+        saved_objects = []
+        while True:
+            resp = self._get(
+                url,
+                params=params,
+            )
+            saved_objects.extend(resp["saved_objects"])
+            if resp["total"] <= len(saved_objects):
+                break
+            else:
+                params["page"] = params["page"] + 1
+        return saved_objects
