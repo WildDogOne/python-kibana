@@ -749,7 +749,7 @@ class kibana:
             space: str | None = None,
     ) -> list[dict, any]:
         """
-        Create exception items that apply to a single detection rule.
+        Get Saved objects by type
         :param type: Mandatory saved object type eg. dashboard.
         :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
         :return: Parsed JSON response.
@@ -772,3 +772,18 @@ class kibana:
             else:
                 params["page"] = params["page"] + 1
         return saved_objects
+
+    def get_dataviews(self, space: str = None) -> list[dict, any]:
+        """
+        Get all dataviews defined in kibana.
+        :param type: Mandatory saved object type eg. dashboard.
+        :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
+        :return: Parsed JSON response.
+        """
+        if space:
+            path = f"/s/{space}/api/data_views"
+        else:
+            path = f"/api/data_views"
+        url = self.base_url + path
+        response = self._get(url)
+        return response["data_view"]
