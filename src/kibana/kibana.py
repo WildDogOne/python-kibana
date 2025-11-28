@@ -212,16 +212,63 @@ class kibana:
             logger.error(f"Unable to POST\nStatus Code: {response.status_code}")
             logger.error(response.json())
 
-    def create_dataview(self, dataview=None, space_id="default"):
-        if dataview:
-            dataview = {"data_view": dataview}
-            logger.info(dataview)
-            url = self.base_url + "/s/" + space_id + "/api/data_views/data_view"
+    def create_dataview(self, name: str, title: str, timeFieldName: str = "@timestamp", space: str = None) -> bool:
+        """
+        Create a dataview
+        :param name: Mandatory name of the dataview.
+        :param title: Mandatory dataview search rule (eg logs-*).
+        :param timeFieldName: Optional field name of timestamp, defaults to @timestamp.
+        :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
+        :return: Parsed JSON response.
+        """
 
-            payload = dataview
-            return self._post(url, payload=payload)
+        if space:
+            path = f"/s/{space}/api/data_views/data_view"
         else:
-            logger.error("No dataview provided")
+            path = f"/api/data_views/data_view"
+        url = self.base_url + path
+        body = {"data_view": {}}
+        if name:
+            body["data_view"]["name"] = name
+        if title:
+            body["data_view"]["title"] = title
+        if timeFieldName:
+            body["data_view"]["timeFieldName"] = timeFieldName
+
+        response = self._post(url, payload=body, headers=self.headers)
+        return response
+
+    def update_dataview(self,
+                        name: str,
+                        title: str,
+                        viewId: str,
+                        timeFieldName: str = "@timestamp",
+                        space: str = None) -> bool:
+        """
+        Create a dataview
+        :param name: Mandatory name of the dataview.
+        :param title: Mandatory dataview search rule (eg logs-*).
+        :param viewId: Mandatory viewId of the dataview.
+        :param timeFieldName: Optional field name of timestamp, defaults to @timestamp.
+        :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
+        :return: Parsed JSON response.
+        """
+
+        if space:
+            path = f"/s/{space}/api/data_views/data_view/{viewId}"
+        else:
+            path = f"/api/data_views/data_view/{viewId}"
+        url = self.base_url + path
+        body = {"data_view": {}}
+        if name:
+            body["data_view"]["name"] = name
+        if title:
+            body["data_view"]["title"] = title
+        if timeFieldName:
+            body["data_view"]["timeFieldName"] = timeFieldName
+
+        response = self._post(url, payload=body, headers=self.headers)
+        return response
 
     def get_dataview(self, dataview_id=None, space_id="default"):
         if dataview_id:
