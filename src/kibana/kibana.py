@@ -15,13 +15,13 @@ from pathlib import Path
 
 class kibana:
     def __init__(
-            self,
-            base_url=None,
-            username=None,
-            password=None,
-            api_key=None,
-            ssl_verify=True,
-            headers=None,
+        self,
+        base_url=None,
+        username=None,
+        password=None,
+        api_key=None,
+        ssl_verify=True,
+        headers=None,
     ):
         if not api_key and (not username and not password):
             raise ValueError("No API Key or Username/Password provided")
@@ -215,11 +215,11 @@ class kibana:
             logger.error(response.json())
 
     def create_dataview(
-            self,
-            name: str,
-            title: str,
-            timeFieldName: str = "@timestamp",
-            space: str = None,
+        self,
+        name: str,
+        title: str,
+        timeFieldName: str = "@timestamp",
+        space: str = None,
     ) -> bool:
         """
         Create a dataview
@@ -247,12 +247,12 @@ class kibana:
         return response
 
     def update_dataview(
-            self,
-            name: str,
-            title: str,
-            viewId: str,
-            timeFieldName: str = "@timestamp",
-            space: str = None,
+        self,
+        name: str,
+        title: str,
+        viewId: str,
+        timeFieldName: str = "@timestamp",
+        space: str = None,
     ) -> bool:
         """
         Create a dataview
@@ -296,11 +296,11 @@ class kibana:
     def delete_dataview(self, dataview_id=None, space_id="default"):
         if dataview_id:
             url = (
-                    self.base_url
-                    + "/s/"
-                    + space_id
-                    + "/api/data_views/data_view/"
-                    + dataview_id
+                self.base_url
+                + "/s/"
+                + space_id
+                + "/api/data_views/data_view/"
+                + dataview_id
             )
             return self._delete(url)
         else:
@@ -391,11 +391,11 @@ class kibana:
             logger.error("No Package Name provided")
 
     def create_package_policy(
-            self,
-            package_policy_name=None,
-            package_name=None,
-            namespace="default",
-            agent_policy=None,
+        self,
+        package_policy_name=None,
+        package_name=None,
+        namespace="default",
+        agent_policy=None,
     ):
         if package_policy_name:
             url = self.base_url + "/api/fleet/package_policies"
@@ -459,15 +459,15 @@ class kibana:
             return False
 
     def create_fleet_output(
-            self,
-            type="elasticsearch",
-            hosts=None,
-            output_id=None,
-            output_name=None,
-            is_default=True,
-            is_default_monitoring=True,
-            ca_trusted_fingerprint=None,
-            config_yaml=None,
+        self,
+        type="elasticsearch",
+        hosts=None,
+        output_id=None,
+        output_name=None,
+        is_default=True,
+        is_default_monitoring=True,
+        ca_trusted_fingerprint=None,
+        config_yaml=None,
     ):
         if hosts and output_name:
             url = self.base_url + "/api/fleet/outputs"
@@ -489,15 +489,15 @@ class kibana:
             logger.error("No Hosts or output Name provided")
 
     def update_fleet_output(
-            self,
-            output_name=None,
-            type=None,
-            hosts=None,
-            output_id=None,
-            is_default=None,
-            is_default_monitoring=None,
-            ca_trusted_fingerprint=None,
-            config_yaml=None,
+        self,
+        output_name=None,
+        type=None,
+        hosts=None,
+        output_id=None,
+        is_default=None,
+        is_default_monitoring=None,
+        ca_trusted_fingerprint=None,
+        config_yaml=None,
     ):
         if output_name:
             output_id = self.get_fleet_output(output_name)
@@ -562,9 +562,9 @@ class kibana:
         output_data = []
         while True:
             url = (
-                    self.base_url
-                    + "/api/detection_engine/rules/_find?per_page=100&page="
-                    + str(page)
+                self.base_url
+                + "/api/detection_engine/rules/_find?per_page=100&page="
+                + str(page)
             )
             x = self._get(url)
             if len(x["data"]) > 0:
@@ -588,12 +588,12 @@ class kibana:
         return outputs
 
     def import_exception_lists(
-            self: object,
-            ndjson_path: str,
-            overwrite: bool = False,
-            create_new_copy: bool = False,
-            space: str = None,
-            timeout: int = 30,
+        self: object,
+        ndjson_path: str,
+        overwrite: bool = False,
+        create_new_copy: bool = False,
+        space: str = None,
+        timeout: int = 30,
     ) -> dict[str, any]:
         """
         Import exception lists and items from an NDJSON file into Kibana/Elastic Security.
@@ -632,7 +632,7 @@ class kibana:
         return resp.json()
 
     def bulk_change_rules(
-            self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
+        self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
     ):
         if rule_ids:
             payload = {"ids": rule_ids, "action": action}
@@ -673,7 +673,7 @@ class kibana:
         return self._get(url, params=params)
 
     def create_exception_container(
-            self, container_name=None, container_type="detection", description=None
+        self, container_name=None, container_type="detection", description=None
     ):
         url = self.base_url + "/api/exception_lists"
         if container_name:
@@ -704,7 +704,7 @@ class kibana:
             logger.error("No Container Name or List ID provided")
 
     def attach_container_to_rule(
-            self, container_name=None, rule_name=None, list_id=None
+        self, container_name=None, rule_name=None, list_id=None
     ):
         if container_name and not list_id:
             container = self.get_exception_container(container_name)
@@ -714,11 +714,11 @@ class kibana:
                 logger.error("No Container found")
 
     def post_get_alerts(
-            self,
-            filter_closed: bool = True,
-            fields: dict = None,
-            size: int = 1000,
-            filter_terms: dict = None,
+        self,
+        filter_closed: bool = True,
+        fields: dict = None,
+        size: int = 1000,
+        filter_terms: dict = None,
     ):
         url = self.base_url + "/api/detection_engine/signals/search"
         print(url)
@@ -766,10 +766,10 @@ class kibana:
         self._post(url, payload)
 
     def create_rule_exception_items(
-            self: object,
-            rule_id: str,
-            items: list[dict[str, any]],
-            space: str | None = None,
+        self: object,
+        rule_id: str,
+        items: list[dict[str, any]],
+        space: str | None = None,
     ) -> dict[str, any]:
         """
         Create exception items that apply to a single detection rule.
@@ -800,9 +800,9 @@ class kibana:
         return resp.json()
 
     def get_saved_objects(
-            self: object,
-            type: str,
-            space: str | None = None,
+        self: object,
+        type: str,
+        space: str | None = None,
     ) -> list[dict, any]:
         """
         Get Saved objects by type
@@ -859,7 +859,7 @@ class kibana:
         return response
 
     def update_connector(
-            self, connector_id: int, config: object, space: str = None
+        self, connector_id: int, config: object, space: str = None
     ) -> list[dict, any]:
         """
         Update a connector defined in kibana.
@@ -877,14 +877,14 @@ class kibana:
         return response
 
     def generate_attack_discovery(
-            self,
-            connectorName: str,
-            connector_id: str,
-            alertsIndexPattern: str = ".alerts-security.alerts-default",
-            size: int = 100,
-            anonymizationFields: dict = None,
-            filter: dict = None,
-            space: str = None,
+        self,
+        connectorName: str,
+        connector_id: str,
+        alertsIndexPattern: str = ".alerts-security.alerts-default",
+        size: int = 100,
+        anonymizationFields: dict = None,
+        filter: dict = None,
+        space: str = None,
     ) -> list[dict, any]:
         """
         Run Attack Discovery.
@@ -1840,23 +1840,71 @@ class kibana:
         return response.json()
 
     def get_attack_discovery(
-            self,
-            attack_discovery_id: int = None,
-            space: str = None,
+        self,
+        attack_discovery_id: int = None,
+        space: str = None,
     ) -> list[dict, any]:
         """
-        Run Attack Discovery.
+        Run Attack Discovery by ID or optionall all.
         :param attack_discovery_id: Optional attack discovery ID.
         :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
         :return: Parsed JSON response.
         """
         url_path = "/api/attack_discovery/generations"
-        if space:
-            path = f"/s/{space}{url_path}"
-        else:
-            path = f"{url_path}"
+        path = self.space_url(url_path, space)
         if attack_discovery_id:
             path = f"{path}/{attack_discovery_id}"
         url = self.base_url + path
         response = self._get(url)
         return response["generations"]
+
+    def space_url(self, url: str, space: str = None) -> str:
+        """
+        Make an URL Path Space Specific if space is defined
+        :param url: URL path
+        :param space: Optional Space Name
+        :return:
+        """
+        if space:
+            return f"/s/{space}{url}"
+        else:
+            return url
+
+    def find_attack_discoveries(
+        self,
+        status: str = None,
+        space: str = None,
+    ) -> list[dict, any]:
+        """
+        Find attack discoveries
+        :param status: Values are acknowledged, closed, or open.
+        :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
+        :return: Parsed JSON response.
+        """
+        url_path = "/api/attack_discovery/_find"
+        url = self.base_url + url_path
+        params = {"status": status}
+        response = self._get_pagination(url, params=params)
+        return response
+
+    def share_attack_discoveries(
+        self,
+        ids: list[int],
+        space: str = None,
+    ) -> list[dict, any]:
+        """
+        Share a list of attack discovery IDs.
+        :param ids: List of attack discovery IDs.
+        :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
+        :return: Parsed JSON response.
+        """
+        url_path = "/api/attack_discovery/_bulk"
+        url = self.base_url + url_path
+        json_data = {
+            "update": {
+                "ids": ids,
+                "visibility": "shared",
+            },
+        }
+        response = self._post(url, payload=json_data)
+        return response
