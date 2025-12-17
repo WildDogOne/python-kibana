@@ -13,8 +13,20 @@ logger.setLevel(logging.INFO)
 
 class kibana:
     def __init__(
-        self, base_url=None, username=None, password=None, api_key=None, ssl_verify=True
+            self, base_url=None, username=None, password=None, api_key=None, ssl_verify=True
     ):
+        """Initialize the Kibana client.
+
+        Args:
+            base_url (str): The base URL for the Kibana instance
+            username (str, optional): Username for basic authentication
+            password (str, optional): Password for basic authentication
+            api_key (str, optional): API key for authentication
+            ssl_verify (bool, optional): Whether to verify SSL certificates. Defaults to True.
+
+        Raises:
+            ValueError: If neither API key nor username/password is provided, or if base_url is not provided
+        """
         if not api_key and (not username and not password):
             raise ValueError("No API Key or Username/Password provided")
         if not base_url:
@@ -36,6 +48,16 @@ class kibana:
         self.ssl_verify = ssl_verify
 
     def _get_pagination(self, url, headers=None, params={}):
+        """Get paginated results from Kibana API.
+
+        Args:
+            url (str): The API endpoint URL
+            headers (dict, optional): Custom headers to include in the request
+            params (dict, optional): Query parameters for the request
+
+        Returns:
+            list: Combined results from all pages, or False if error occurs
+        """
         if self.headers is None:
             headers = {"Accept": "application/json"}
         else:
@@ -76,6 +98,17 @@ class kibana:
         return output
 
     def _get(self, url, payload=None, headers=None, params=None):
+        """Send a GET request to Kibana API.
+
+        Args:
+            url (str): The API endpoint URL
+            payload (dict, optional): JSON payload to send with the request
+            headers (dict, optional): Custom headers to include in the request
+            params (dict, optional): Query parameters for the request
+
+        Returns:
+            dict: JSON response if successful, None otherwise
+        """
         if payload is None:
             payload = {}
         if self.headers is None:
@@ -110,6 +143,16 @@ class kibana:
             pprint(response.status_code)
 
     def _put(self, url, payload=None, headers=None):
+        """Send a PUT request to Kibana API.
+
+        Args:
+            url (str): The API endpoint URL
+            payload (dict, optional): JSON payload to send with the request
+            headers (dict, optional): Custom headers to include in the request
+
+        Returns:
+            dict: JSON response if successful, None otherwise
+        """
         if payload is None:
             payload = {}
         if self.headers is None:
@@ -133,6 +176,15 @@ class kibana:
             pprint(response.status_code)
 
     def _delete(self, url, headers=None):
+        """Send a DELETE request to Kibana API.
+
+        Args:
+            url (str): The API endpoint URL
+            headers (dict, optional): Custom headers to include in the request
+
+        Returns:
+            str: Response text if successful, None otherwise
+        """
         if self.headers is None:
             headers = {"Accept": "application/json", "kbn-xsrf": ""}
         else:
@@ -154,6 +206,17 @@ class kibana:
             logger.error(response.json())
 
     def _post(self, url, payload=None, headers=None, params=None):
+        """Send a POST request to Kibana API.
+
+        Args:
+            url (str): The API endpoint URL
+            payload (dict, optional): JSON payload to send with the request
+            headers (dict, optional): Custom headers to include in the request
+            params (dict, optional): Query parameters for the request
+
+        Returns:
+            Response: Response object if successful, None otherwise
+        """
         if payload is None:
             payload = {}
         if self.headers is None:
@@ -192,6 +255,15 @@ class kibana:
             logger.error(response.json())
 
     def create_dataview(self, dataview=None, space_id="default"):
+        """Create a new data view in Kibana.
+
+        Args:
+            dataview (dict, optional): The data view configuration
+            space_id (str, optional): The space ID. Defaults to "default"
+
+        Returns:
+            Response: Response object from the API call
+        """
         if dataview:
             dataview = {"data_view": dataview}
             logger.info(dataview)
@@ -203,6 +275,15 @@ class kibana:
             logger.error("No dataview provided")
 
     def get_dataview(self, dataview_id=None, space_id="default"):
+        """Get a data view by ID or name.
+
+        Args:
+            dataview_id (str, optional): The data view ID or name to search for
+            space_id (str, optional): The space ID. Defaults to "default"
+
+        Returns:
+            str: The data view ID if found, False otherwise
+        """
         if dataview_id:
             url = self.base_url + "/s/" + space_id + "/api/data_views"
             dataviews = self._get(url)
@@ -216,19 +297,37 @@ class kibana:
             logger.error("No dataview id provided")
 
     def delete_dataview(self, dataview_id=None, space_id="default"):
+        """Delete a data view by ID.
+
+        Args:
+            dataview_id (str, optional): The data view ID to delete
+            space_id (str, optional): The space ID. Defaults to "default"
+
+        Returns:
+            str: Response text from the API call
+        """
         if dataview_id:
             url = (
-                self.base_url
-                + "/s/"
-                + space_id
-                + "/api/data_views/data_view/"
-                + dataview_id
+                    self.base_url
+                    + "/s/"
+                    + space_id
+                    + "/api/data_views/data_view/"
+                    + dataview_id
             )
             return self._delete(url)
         else:
             logger.error("No dataview id provided")
 
     def install_package(self, package_name=None, package_version=None):
+        """Install a package from the Elastic Package Registry.
+
+        Args:
+            package_name (str, optional): Name of the package to install
+            package_version (str, optional): Version of the package to install
+
+        Returns:
+            Response: Response object from the API call
+        """
         if package_name:
             url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
             if package_version:
@@ -241,6 +340,14 @@ class kibana:
             logger.error("No Package Name provided")
 
     def get_install_status(self, package_name=None):
+        """Check if a package is installed.
+
+        Args:
+            package_name (str, optional): Name of the package to check
+
+        Returns:
+            bool: True if package is installed, False otherwise
+        """
         if package_name:
             url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
             installed = self._get(url)["response"]["status"]
@@ -252,6 +359,14 @@ class kibana:
             logger.error("No Package Name provided")
 
     def delete_package(self, package_name=None):
+        """Delete an installed package.
+
+        Args:
+            package_name (str, optional): Name of the package to delete
+
+        Returns:
+            str: Response text from the API call
+        """
         if package_name:
             url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
             package_version = self._get(url)["item"]["version"]
@@ -261,6 +376,14 @@ class kibana:
             logger.error("No Package Name provided")
 
     def update_package(self, package_name=None):
+        """Update an installed package.
+
+        Args:
+            package_name (str, optional): Name of the package to update
+
+        Returns:
+            dict: JSON response from the API call
+        """
         if package_name:
             url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
             package_version = self._get(url)["item"]["version"]
@@ -270,6 +393,15 @@ class kibana:
             logger.error("No Package Name provided")
 
     def create_agent_policy(self, name=None, namespace="default"):
+        """Create a new agent policy.
+
+        Args:
+            name (str, optional): Name of the agent policy
+            namespace (str, optional): Namespace for the policy. Defaults to "default"
+
+        Returns:
+            Response: Response object from the API call
+        """
         if name:
             url = self.base_url + "/api/fleet/agent_policies"
 
@@ -283,6 +415,14 @@ class kibana:
             logger.error("No Agent Policy Name provided")
 
     def get_agent_policy(self, name=None):
+        """Get an agent policy by name.
+
+        Args:
+            name (str, optional): Name of the agent policy to retrieve
+
+        Returns:
+            dict: The agent policy if found, False otherwise
+        """
         if name:
             url = self.base_url + "/api/fleet/agent_policies"
             policies = self._get(url)
@@ -294,6 +434,14 @@ class kibana:
             logger.error("No Agent Policy Name provided")
 
     def delete_agent_policy(self, name=None):
+        """Delete an agent policy by name.
+
+        Args:
+            name (str, optional): Name of the agent policy to delete
+
+        Returns:
+            Response: Response object from the API call, or False if policy not found
+        """
         if name:
             policy = self.get_agent_policy(name)
             if policy:
@@ -306,6 +454,14 @@ class kibana:
             logger.error("No Agent Policy Name provided")
 
     def get_package(self, package_name=None):
+        """Get package information.
+
+        Args:
+            package_name (str, optional): Name of the package to retrieve
+
+        Returns:
+            dict: Package information from the API response
+        """
         if package_name:
             url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
             return self._get(url)["response"]
@@ -313,12 +469,23 @@ class kibana:
             logger.error("No Package Name provided")
 
     def create_package_policy(
-        self,
-        package_policy_name=None,
-        package_name=None,
-        namespace="default",
-        agent_policy=None,
+            self,
+            package_policy_name=None,
+            package_name=None,
+            namespace="default",
+            agent_policy=None,
     ):
+        """Create a new package policy.
+
+        Args:
+            package_policy_name (str, optional): Name of the package policy
+            package_name (str, optional): Name of the package to associate
+            namespace (str, optional): Namespace for the policy. Defaults to "default"
+            agent_policy (str, optional): Name of the agent policy to use
+
+        Returns:
+            Response: Response object from the API call
+        """
         if package_policy_name:
             url = self.base_url + "/api/fleet/package_policies"
             agent_policy_id = self.get_agent_policy(name=agent_policy)["id"]
@@ -351,10 +518,27 @@ class kibana:
             logger.error("No Package Policy Name provided")
 
     def get_service_token(self, token_name=None, token_value=None):
+        """Get a service token.
+
+        Args:
+            token_name (str, optional): Name for the service token
+            token_value (str, optional): Value for the service token
+
+        Returns:
+            str: The service token value
+        """
         url = self.base_url + "/api/fleet/service_tokens"
         return self._post(url).json()["value"]
 
     def get_enrolment_key(self, agent_policy_name=None):
+        """Get an enrollment API key for an agent policy.
+
+        Args:
+            agent_policy_name (str, optional): Name of the agent policy
+
+        Returns:
+            str: The enrollment API key if found, None otherwise
+        """
         if agent_policy_name:
             url = self.base_url + "/api/fleet/enrollment_api_keys"
             keys = self._get(url)
@@ -366,10 +550,23 @@ class kibana:
             logger.error("No Agent Policy Name provided")
 
     def get_fleet_outputs(self):
+        """Get all fleet outputs.
+
+        Returns:
+            dict: List of all fleet outputs
+        """
         url = self.base_url + "/api/fleet/outputs"
         return self._get(url)
 
     def get_fleet_output(self, output_name=None):
+        """Get a fleet output by name.
+
+        Args:
+            output_name (str, optional): Name of the fleet output to retrieve
+
+        Returns:
+            str: The fleet output ID if found, False otherwise
+        """
         if output_name:
             existing_outputs = self.get_fleet_outputs()
             for output in existing_outputs["items"]:
@@ -381,16 +578,31 @@ class kibana:
             return False
 
     def create_fleet_output(
-        self,
-        type="elasticsearch",
-        hosts=None,
-        output_id=None,
-        output_name=None,
-        is_default=True,
-        is_default_monitoring=True,
-        ca_trusted_fingerprint=None,
-        config_yaml=None,
+            self,
+            type="elasticsearch",
+            hosts=None,
+            output_id=None,
+            output_name=None,
+            is_default=True,
+            is_default_monitoring=True,
+            ca_trusted_fingerprint=None,
+            config_yaml=None,
     ):
+        """Create a new fleet output.
+
+        Args:
+            type (str, optional): Type of output. Defaults to "elasticsearch"
+            hosts (list, optional): List of host URLs
+            output_id (str, optional): ID for the output
+            output_name (str, optional): Name for the output
+            is_default (bool, optional): Whether this is the default output. Defaults to True
+            is_default_monitoring (bool, optional): Whether this is the default monitoring output. Defaults to True
+            ca_trusted_fingerprint (str, optional): CA fingerprint for SSL verification
+            config_yaml (str, optional): YAML configuration for the output
+
+        Returns:
+            Response: Response object from the API call
+        """
         if hosts and output_name:
             url = self.base_url + "/api/fleet/outputs"
             payload = {
@@ -411,16 +623,31 @@ class kibana:
             logger.error("No Hosts or output Name provided")
 
     def update_fleet_output(
-        self,
-        output_name=None,
-        type=None,
-        hosts=None,
-        output_id=None,
-        is_default=None,
-        is_default_monitoring=None,
-        ca_trusted_fingerprint=None,
-        config_yaml=None,
+            self,
+            output_name=None,
+            type=None,
+            hosts=None,
+            output_id=None,
+            is_default=None,
+            is_default_monitoring=None,
+            ca_trusted_fingerprint=None,
+            config_yaml=None,
     ):
+        """Update a fleet output.
+
+        Args:
+            output_name (str, optional): Name of the fleet output to update
+            type (str, optional): New type for the output
+            hosts (list, optional): New list of host URLs
+            output_id (str, optional): ID for the output
+            is_default (bool, optional): Whether this should be the default output
+            is_default_monitoring (bool, optional): Whether this should be the default monitoring output
+            ca_trusted_fingerprint (str, optional): New CA fingerprint for SSL verification
+            config_yaml (str, optional): New YAML configuration for the output
+
+        Returns:
+            dict: JSON response from the API call
+        """
         if output_name:
             output_id = self.get_fleet_output(output_name)
             if output_id:
@@ -495,7 +722,7 @@ class kibana:
         return outputs
 
     def bulk_change_rules(
-        self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
+            self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
     ):
         if rule_ids:
             payload = {"ids": rule_ids, "action": action}
@@ -539,7 +766,7 @@ class kibana:
             logger.error("No Container Name provided")
 
     def create_exception_container(
-        self, container_name=None, container_type="detection", description=None
+            self, container_name=None, container_type="detection", description=None
     ):
         url = self.base_url + "/api/exception_lists"
         if container_name:
