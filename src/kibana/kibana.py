@@ -4,12 +4,6 @@ import logging
 import requests
 from requests.auth import HTTPBasicAuth
 
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
 
 class kibana:
     def __init__(
@@ -27,6 +21,27 @@ class kibana:
         Raises:
             ValueError: If neither API key nor username/password is provided, or if base_url is not provided
         """
+        # Create a logger specific to this class
+        self.logger = logging.getLogger(__name__)
+
+        # Set the logging level
+        self.logger.setLevel(logging.INFO)
+
+        # Create a console handler and set level to INFO
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+
+        # Create formatter
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+
+        # Add formatter to ch
+        ch.setFormatter(formatter)
+
+        # Add ch to logger
+        self.logger.addHandler(ch)
+
         if not api_key and (not username and not password):
             raise ValueError("No API Key or Username/Password provided")
         if not base_url:
@@ -797,7 +812,7 @@ class kibana:
             logger.error("No Container Name or List ID provided")
 
     def attach_container_to_rule(
-        self, container_name=None, rule_name=None, list_id=None
+            self, container_name=None, rule_name=None, list_id=None
     ):
         if container_name and not list_id:
             container = self.get_exception_container(container_name)
