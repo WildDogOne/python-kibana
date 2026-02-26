@@ -100,8 +100,8 @@ class kibana:
                     auth=HTTPBasicAuth(self.username, self.password),
                 )
             if response.status_code != 200:
-                logger.error("Cannot get")
-                logger.info(response)
+                self.logger.error("Cannot get")
+                self.logger.info(response)
                 return False
             else:
                 response = response.json()
@@ -152,8 +152,8 @@ class kibana:
         if response.status_code == 200:
             return response.json()
         elif response.status_code == 404:
-            logger.error(f"Error 404\n{response.url}")
-            logger.error(response.json())
+            self.logger.error(f"Error 404\n{response.url}")
+            self.logger.error(response.json())
         else:
             pprint(response.status_code)
 
@@ -174,19 +174,28 @@ class kibana:
             headers = {"Accept": "application/json", "kbn-xsrf": ""}
         else:
             headers = self.headers
-        response = requests.request(
-            "PUT",
-            url,
-            headers=headers,
-            json=payload,
-            verify=self.ssl_verify,
-            auth=HTTPBasicAuth(self.username, self.password),
-        )
+        if self.api_key:
+            response = requests.request(
+                "PUT",
+                url,
+                headers=headers,
+                json=payload,
+                verify=self.ssl_verify,
+            )
+        else:
+            response = requests.request(
+                "PUT",
+                url,
+                headers=headers,
+                json=payload,
+                verify=self.ssl_verify,
+                auth=HTTPBasicAuth(self.username, self.password),
+            )
         if response.status_code == 200:
             return response.json()
         elif response.status_code == 404:
-            logger.error(f"Error 404\n{response.url}")
-            logger.error(response.json())
+            self.logger.error(f"Error 404\n{response.url}")
+            self.logger.error(response.json())
         else:
             pprint(response.status_code)
 
@@ -204,21 +213,29 @@ class kibana:
             headers = {"Accept": "application/json", "kbn-xsrf": ""}
         else:
             headers = self.headers
-        response = requests.request(
-            "DELETE",
-            url,
-            headers=headers,
-            verify=self.ssl_verify,
-            auth=HTTPBasicAuth(self.username, self.password),
-        )
+        if self.api_key:
+            response = requests.request(
+                "DELETE",
+                url,
+                headers=headers,
+                verify=self.ssl_verify,
+            )
+        else:
+            response = requests.request(
+                "DELETE",
+                url,
+                headers=headers,
+                verify=self.ssl_verify,
+                auth=HTTPBasicAuth(self.username, self.password),
+            )
         if response.status_code == 200:
             return response.text
         elif response.status_code == 404:
-            logger.error(f"Error 404\n{response.url}")
-            logger.error(response.json())
+            self.logger.error(f"Error 404\n{response.url}")
+            self.logger.error(response.json())
         else:
-            logger.error(response.status_code)
-            logger.error(response.json())
+            self.logger.error(response.status_code)
+            self.logger.error(response.json())
 
     def _post(self, url, payload=None, headers=None, params=None):
         """Send a POST request to Kibana API.
@@ -263,11 +280,11 @@ class kibana:
         elif response.status_code == 409:
             return response
         elif response.status_code == 404:
-            logger.error(f"Error 404\n{response.url}")
-            logger.error(response.json())
+            self.logger.error(f"Error 404\n{response.url}")
+            self.logger.error(response.json())
         else:
-            logger.error(f"Unable to POST\nStatus Code: {response.status_code}")
-            logger.error(response.json())
+            self.logger.error(f"Unable to POST\nStatus Code: {response.status_code}")
+            self.logger.error(response.json())
 
     def create_dataview(self, dataview=None, space_id="default"):
         """Create a new data view in Kibana.
