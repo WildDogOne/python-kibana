@@ -298,13 +298,13 @@ class kibana:
         """
         if dataview:
             dataview = {"data_view": dataview}
-            logger.info(dataview)
+            self.logger.info(dataview)
             url = self.base_url + "/s/" + space_id + "/api/data_views/data_view"
 
             payload = dataview
             return self._post(url, payload=payload)
         else:
-            logger.error("No dataview provided")
+            self.logger.error("No dataview provided")
 
     def get_dataview(self, dataview_id=None, space_id="default"):
         """Get a data view by ID or name.
@@ -326,7 +326,7 @@ class kibana:
                     return dataview and dataview["id"]
             return False
         else:
-            logger.error("No dataview id provided")
+            self.logger.error("No dataview id provided")
 
     def delete_dataview(self, dataview_id=None, space_id="default"):
         """Delete a data view by ID.
@@ -348,7 +348,7 @@ class kibana:
             )
             return self._delete(url)
         else:
-            logger.error("No dataview id provided")
+            self.logger.error("No dataview id provided")
 
     def install_package(self, package_name=None, package_version=None):
         """Install a package from the Elastic Package Registry.
@@ -369,7 +369,7 @@ class kibana:
                 url = url + "/" + package_version
             return self._post(url)
         else:
-            logger.error("No Package Name provided")
+            self.logger.error("No Package Name provided")
 
     def get_install_status(self, package_name=None):
         """Check if a package is installed.
@@ -388,7 +388,7 @@ class kibana:
             else:
                 return False
         else:
-            logger.error("No Package Name provided")
+            self.logger.error("No Package Name provided")
 
     def delete_package(self, package_name=None):
         """Delete an installed package.
@@ -405,7 +405,7 @@ class kibana:
             url = url + "/" + package_version
             return self._delete(url)
         else:
-            logger.error("No Package Name provided")
+            self.logger.error("No Package Name provided")
 
     def update_package(self, package_name=None):
         """Update an installed package.
@@ -422,7 +422,7 @@ class kibana:
             url = url + "/" + package_version
             return self._put(url)
         else:
-            logger.error("No Package Name provided")
+            self.logger.error("No Package Name provided")
 
     def create_agent_policy(self, name=None, namespace="default"):
         """Create a new agent policy.
@@ -444,7 +444,7 @@ class kibana:
             }
             return self._post(url, payload)
         else:
-            logger.error("No Agent Policy Name provided")
+            self.logger.error("No Agent Policy Name provided")
 
     def get_agent_policy(self, name=None):
         """Get an agent policy by name.
@@ -463,7 +463,7 @@ class kibana:
                     return policy
             return False
         else:
-            logger.error("No Agent Policy Name provided")
+            self.logger.error("No Agent Policy Name provided")
 
     def delete_agent_policy(self, name=None):
         """Delete an agent policy by name.
@@ -483,7 +483,7 @@ class kibana:
                 return self._post(url, payload)
             return False
         else:
-            logger.error("No Agent Policy Name provided")
+            self.logger.error("No Agent Policy Name provided")
 
     def get_package(self, package_name=None):
         """Get package information.
@@ -498,7 +498,7 @@ class kibana:
             url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
             return self._get(url)["response"]
         else:
-            logger.error("No Package Name provided")
+            self.logger.error("No Package Name provided")
 
     def create_package_policy(
             self,
@@ -547,7 +547,7 @@ class kibana:
             }
             return self._post(url, payload)
         else:
-            logger.error("No Package Policy Name provided")
+            self.logger.error("No Package Policy Name provided")
 
     def get_service_token(self, token_name=None, token_value=None):
         """Get a service token.
@@ -579,7 +579,7 @@ class kibana:
                 if key["policy_id"] == agent_policy_name:
                     return key["api_key"]
         else:
-            logger.error("No Agent Policy Name provided")
+            self.logger.error("No Agent Policy Name provided")
 
     def get_fleet_outputs(self):
         """Get all fleet outputs.
@@ -652,7 +652,7 @@ class kibana:
                 payload["ca_sha256"] = ca_trusted_fingerprint
             return self._post(url, payload)
         else:
-            logger.error("No Hosts or output Name provided")
+            self.logger.error("No Hosts or output Name provided")
 
     def update_fleet_output(
             self,
@@ -699,9 +699,9 @@ class kibana:
                     payload["ca_sha256"] = ca_trusted_fingerprint
                 return self._put(url, payload)
             else:
-                logger.error("No Output ID found")
+                self.logger.error("No Output ID found")
         else:
-            logger.error("No Output Name provided")
+            self.logger.error("No Output Name provided")
 
     def delete_fleet_output(self, output_name=None):
         if output_name:
@@ -710,9 +710,9 @@ class kibana:
                 url = self.base_url + "/api/fleet/outputs/" + output_id
                 return self._delete(url)
             else:
-                logger.error("No Output ID found")
+                self.logger.error("No Output ID found")
         else:
-            logger.error("No Output Name provided")
+            self.logger.error("No Output Name provided")
 
     def load_prebuilt_rules(self):
         url = self.base_url + "/api/detection_engine/rules/prepackaged"
@@ -767,7 +767,7 @@ class kibana:
             url = self.base_url + "/api/detection_engine/rules/_bulk_action"
             return self._post(url, payload)
         else:
-            logger.error("No Rules ids provided")
+            self.logger.error("No Rules ids provided")
 
     def enable_prebuild_ml_job(self, job_name=None):
         url = self.base_url + "/api/ml/jobs/force_start_datafeeds"
@@ -775,7 +775,7 @@ class kibana:
             payload = {"datafeedIds": [f"datafeed-{job_name}"]}
             return self._post(url, payload)
         else:
-            logger.error("No Job Name provided")
+            self.logger.error("No Job Name provided")
 
     def disable_prebuild_ml_job(self, job_name=None):
         url = self.base_url + "/api/ml/jobs/stop_datafeeds"
@@ -783,7 +783,7 @@ class kibana:
             payload = {"datafeedIds": [f"datafeed-{job_name}"]}
             return self._post(url, payload)
         else:
-            logger.error("No Job Name provided")
+            self.logger.error("No Job Name provided")
 
     def get_exception_container(self, container_name=None):
         url = self.base_url + "/api/exception_lists/_find"
@@ -795,7 +795,7 @@ class kibana:
             return False
             # return exception_containers
         else:
-            logger.error("No Container Name provided")
+            self.logger.error("No Container Name provided")
 
     def create_exception_container(
             self, container_name=None, container_type="detection", description=None
@@ -813,7 +813,7 @@ class kibana:
                 payload["description"] = container_name
             return self._post(url, payload)
         else:
-            logger.error("No Container Name provided")
+            self.logger.error("No Container Name provided")
 
     def delete_exception_container(self, container_name=None, list_id=None):
         if container_name and not list_id:
@@ -821,12 +821,12 @@ class kibana:
             if container:
                 list_id = container["list_id"]
             else:
-                logger.error("No Container found")
+                self.logger.error("No Container found")
         if list_id:
             url = self.base_url + "/api/exception_lists?list_id=" + list_id
             return self._delete(url)
         else:
-            logger.error("No Container Name or List ID provided")
+            self.logger.error("No Container Name or List ID provided")
 
     def attach_container_to_rule(
             self, container_name=None, rule_name=None, list_id=None
@@ -836,7 +836,7 @@ class kibana:
             if container:
                 list_id = container["list_id"]
             else:
-                logger.error("No Container found")
+                self.logger.error("No Container found")
 
     def post_close_alert(self, signal_ids):
         url = self.base_url + "/api/detection_engine/signals/status"
