@@ -3,26 +3,44 @@ from pprint import pprint
 import logging
 import requests
 from requests.auth import HTTPBasicAuth
-from datetime import datetime, timedelta, timezone
-
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-from pathlib import Path
 
 
 class kibana:
     def __init__(
-        self,
-        base_url=None,
-        username=None,
-        password=None,
-        api_key=None,
-        ssl_verify=True,
-        headers=None,
+            self, base_url=None, username=None, password=None, api_key=None, ssl_verify=True
     ):
+        """Initialize the Kibana client.
+
+        Args:
+            base_url (str): The base URL for the Kibana instance
+            username (str, optional): Username for basic authentication
+            password (str, optional): Password for basic authentication
+            api_key (str, optional): API key for authentication
+            ssl_verify (bool, optional): Whether to verify SSL certificates. Defaults to True.
+
+        Raises:
+            ValueError: If neither API key nor username/password is provided, or if base_url is not provided
+        """
+        # Create a logger specific to this class
+        self.logger = logging.getLogger(__name__)
+
+        # Set the logging level
+        self.logger.setLevel(logging.INFO)
+
+        # Create a console handler and set level to INFO
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.INFO)
+
+        # Create formatter
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+
+        # Add formatter to ch
+        ch.setFormatter(formatter)
+
+        # Add ch to logger
+        self.logger.addHandler(ch)
         if not api_key and (not username and not password):
             raise ValueError("No API Key or Username/Password provided")
         if not base_url:
@@ -73,8 +91,8 @@ class kibana:
                     auth=HTTPBasicAuth(self.username, self.password),
                 )
             if response.status_code != 200:
-                logger.error("Cannot get")
-                logger.info(response)
+                self.logger.error("Cannot get")
+                self.logger.info(response)
                 return False
             else:
                 response = response.json()
@@ -114,8 +132,8 @@ class kibana:
         if response.status_code == 200:
             return response.json()
         elif response.status_code == 404:
-            logger.error(f"Error 404\n{response.url}")
-            logger.error(response.json())
+            self.logger.error(f"Error 404\n{response.url}")
+            self.logger.error(response.json())
         else:
             pprint(response.status_code)
 
@@ -146,8 +164,8 @@ class kibana:
         if response.status_code == 200:
             return response.json()
         elif response.status_code == 404:
-            logger.error(f"Error 404\n{response.url}")
-            logger.error(response.json())
+            self.logger.error(f"Error 404\n{response.url}")
+            self.logger.error(response.json())
         else:
             pprint(response.status_code)
             pprint(response.json())
@@ -167,11 +185,11 @@ class kibana:
         if response.status_code == 200:
             return response.text
         elif response.status_code == 404:
-            logger.error(f"Error 404\n{response.url}")
-            logger.error(response.json())
+            self.logger.error(f"Error 404\n{response.url}")
+            self.logger.error(response.json())
         else:
-            logger.error(response.status_code)
-            logger.error(response.json())
+            self.logger.error(response.status_code)
+            self.logger.error(response.json())
 
     def _post(self, url, payload=None, headers=None, params=None, files=None):
         if payload is None:
@@ -208,18 +226,18 @@ class kibana:
         elif response.status_code == 409:
             return response
         elif response.status_code == 404:
-            logger.error(f"Error 404\n{response.url}")
-            logger.error(response.json())
+            self.logger.error(f"Error 404\n{response.url}")
+            self.logger.error(response.json())
         else:
-            logger.error(f"Unable to POST\nStatus Code: {response.status_code}")
-            logger.error(response.json())
+            self.logger.error(f"Unable to POST\nStatus Code: {response.status_code}")
+            self.logger.error(response.json())
 
     def create_dataview(
-        self,
-        name: str,
-        title: str,
-        timeFieldName: str = "@timestamp",
-        space: str = None,
+            self,
+            name: str,
+            title: str,
+            timeFieldName: str = "@timestamp",
+            space: str = None,
     ) -> bool:
         """
         Create a dataview
@@ -247,12 +265,12 @@ class kibana:
         return response
 
     def update_dataview(
-        self,
-        name: str,
-        title: str,
-        viewId: str,
-        timeFieldName: str = "@timestamp",
-        space: str = None,
+            self,
+            name: str,
+            title: str,
+            viewId: str,
+            timeFieldName: str = "@timestamp",
+            space: str = None,
     ) -> bool:
         """
         Create a dataview
@@ -291,20 +309,20 @@ class kibana:
                     return dataview and dataview["id"]
             return False
         else:
-            logger.error("No dataview id provided")
+            self.logger.error("No dataview id provided")
 
     def delete_dataview(self, dataview_id=None, space_id="default"):
         if dataview_id:
             url = (
-                self.base_url
-                + "/s/"
-                + space_id
-                + "/api/data_views/data_view/"
-                + dataview_id
+                    self.base_url
+                    + "/s/"
+                    + space_id
+                    + "/api/data_views/data_view/"
+                    + dataview_id
             )
             return self._delete(url)
         else:
-            logger.error("No dataview id provided")
+            self.logger.error("No dataview id provided")
 
     def install_package(self, package_name=None, package_version=None):
         if package_name:
@@ -316,7 +334,7 @@ class kibana:
                 url = url + "/" + package_version
             return self._post(url)
         else:
-            logger.error("No Package Name provided")
+            self.logger.error("No Package Name provided")
 
     def get_install_status(self, package_name=None):
         if package_name:
@@ -327,7 +345,7 @@ class kibana:
             else:
                 return False
         else:
-            logger.error("No Package Name provided")
+            self.logger.error("No Package Name provided")
 
     def delete_package(self, package_name=None):
         if package_name:
@@ -336,7 +354,7 @@ class kibana:
             url = url + "/" + package_version
             return self._delete(url)
         else:
-            logger.error("No Package Name provided")
+            self.logger.error("No Package Name provided")
 
     def update_package(self, package_name=None):
         if package_name:
@@ -345,7 +363,7 @@ class kibana:
             url = url + "/" + package_version
             return self._put(url)
         else:
-            logger.error("No Package Name provided")
+            self.logger.error("No Package Name provided")
 
     def create_agent_policy(self, name=None, namespace="default"):
         if name:
@@ -358,7 +376,7 @@ class kibana:
             }
             return self._post(url, payload)
         else:
-            logger.error("No Agent Policy Name provided")
+            self.logger.error("No Agent Policy Name provided")
 
     def get_agent_policy(self, name=None):
         if name:
@@ -369,7 +387,7 @@ class kibana:
                     return policy
             return False
         else:
-            logger.error("No Agent Policy Name provided")
+            self.logger.error("No Agent Policy Name provided")
 
     def delete_agent_policy(self, name=None):
         if name:
@@ -381,21 +399,21 @@ class kibana:
                 return self._post(url, payload)
             return False
         else:
-            logger.error("No Agent Policy Name provided")
+            self.logger.error("No Agent Policy Name provided")
 
     def get_package(self, package_name=None):
         if package_name:
             url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
             return self._get(url)["response"]
         else:
-            logger.error("No Package Name provided")
+            self.logger.error("No Package Name provided")
 
     def create_package_policy(
-        self,
-        package_policy_name=None,
-        package_name=None,
-        namespace="default",
-        agent_policy=None,
+            self,
+            package_policy_name=None,
+            package_name=None,
+            namespace="default",
+            agent_policy=None,
     ):
         if package_policy_name:
             url = self.base_url + "/api/fleet/package_policies"
@@ -426,7 +444,7 @@ class kibana:
             }
             return self._post(url, payload)
         else:
-            logger.error("No Package Policy Name provided")
+            self.logger.error("No Package Policy Name provided")
 
     def get_service_token(self, token_name=None, token_value=None):
         url = self.base_url + "/api/fleet/service_tokens"
@@ -441,7 +459,7 @@ class kibana:
                 if key["policy_id"] == agent_policy_name:
                     return key["api_key"]
         else:
-            logger.error("No Agent Policy Name provided")
+            self.logger.error("No Agent Policy Name provided")
 
     def get_fleet_outputs(self):
         url = self.base_url + "/api/fleet/outputs"
@@ -459,15 +477,15 @@ class kibana:
             return False
 
     def create_fleet_output(
-        self,
-        type="elasticsearch",
-        hosts=None,
-        output_id=None,
-        output_name=None,
-        is_default=True,
-        is_default_monitoring=True,
-        ca_trusted_fingerprint=None,
-        config_yaml=None,
+            self,
+            type="elasticsearch",
+            hosts=None,
+            output_id=None,
+            output_name=None,
+            is_default=True,
+            is_default_monitoring=True,
+            ca_trusted_fingerprint=None,
+            config_yaml=None,
     ):
         if hosts and output_name:
             url = self.base_url + "/api/fleet/outputs"
@@ -486,18 +504,18 @@ class kibana:
                 payload["ca_sha256"] = ca_trusted_fingerprint
             return self._post(url, payload)
         else:
-            logger.error("No Hosts or output Name provided")
+            self.logger.error("No Hosts or output Name provided")
 
     def update_fleet_output(
-        self,
-        output_name=None,
-        type=None,
-        hosts=None,
-        output_id=None,
-        is_default=None,
-        is_default_monitoring=None,
-        ca_trusted_fingerprint=None,
-        config_yaml=None,
+            self,
+            output_name=None,
+            type=None,
+            hosts=None,
+            output_id=None,
+            is_default=None,
+            is_default_monitoring=None,
+            ca_trusted_fingerprint=None,
+            config_yaml=None,
     ):
         if output_name:
             output_id = self.get_fleet_output(output_name)
@@ -518,9 +536,9 @@ class kibana:
                     payload["ca_sha256"] = ca_trusted_fingerprint
                 return self._put(url, payload)
             else:
-                logger.error("No Output ID found")
+                self.logger.error("No Output ID found")
         else:
-            logger.error("No Output Name provided")
+            self.logger.error("No Output Name provided")
 
     def delete_fleet_output(self, output_name=None):
         if output_name:
@@ -529,9 +547,9 @@ class kibana:
                 url = self.base_url + "/api/fleet/outputs/" + output_id
                 return self._delete(url)
             else:
-                logger.error("No Output ID found")
+                self.logger.error("No Output ID found")
         else:
-            logger.error("No Output Name provided")
+            self.logger.error("No Output Name provided")
 
     def load_prebuilt_rules(self):
         url = self.base_url + "/api/detection_engine/rules/prepackaged"
@@ -562,9 +580,9 @@ class kibana:
         output_data = []
         while True:
             url = (
-                self.base_url
-                + "/api/detection_engine/rules/_find?per_page=100&page="
-                + str(page)
+                    self.base_url
+                    + "/api/detection_engine/rules/_find?per_page=100&page="
+                    + str(page)
             )
             x = self._get(url)
             if len(x["data"]) > 0:
@@ -588,12 +606,12 @@ class kibana:
         return outputs
 
     def import_exception_lists(
-        self: object,
-        ndjson_path: str,
-        overwrite: bool = False,
-        create_new_copy: bool = False,
-        space: str = None,
-        timeout: int = 30,
+            self: object,
+            ndjson_path: str,
+            overwrite: bool = False,
+            create_new_copy: bool = False,
+            space: str = None,
+            timeout: int = 30,
     ) -> dict[str, any]:
         """
         Import exception lists and items from an NDJSON file into Kibana/Elastic Security.
@@ -632,7 +650,7 @@ class kibana:
         return resp.json()
 
     def bulk_change_rules(
-        self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
+            self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
     ):
         if rule_ids:
             payload = {"ids": rule_ids, "action": action}
@@ -645,7 +663,7 @@ class kibana:
             url = self.base_url + "/api/detection_engine/rules/_bulk_action"
             return self._post(url, payload)
         else:
-            logger.error("No Rules ids provided")
+            self.logger.error("No Rules ids provided")
 
     def enable_prebuild_ml_job(self, job_name=None):
         url = self.base_url + "/api/ml/jobs/force_start_datafeeds"
@@ -653,7 +671,7 @@ class kibana:
             payload = {"datafeedIds": [f"datafeed-{job_name}"]}
             return self._post(url, payload)
         else:
-            logger.error("No Job Name provided")
+            self.logger.error("No Job Name provided")
 
     def disable_prebuild_ml_job(self, job_name=None):
         url = self.base_url + "/api/ml/jobs/stop_datafeeds"
@@ -661,7 +679,7 @@ class kibana:
             payload = {"datafeedIds": [f"datafeed-{job_name}"]}
             return self._post(url, payload)
         else:
-            logger.error("No Job Name provided")
+            self.logger.error("No Job Name provided")
 
     def get_exception_container(self, id=None, list_id=None):
         url = self.base_url + "/api/exception_lists"
@@ -673,7 +691,7 @@ class kibana:
         return self._get(url, params=params)
 
     def create_exception_container(
-        self, container_name=None, container_type="detection", description=None
+            self, container_name=None, container_type="detection", description=None
     ):
         url = self.base_url + "/api/exception_lists"
         if container_name:
@@ -688,7 +706,7 @@ class kibana:
                 payload["description"] = container_name
             return self._post(url, payload)
         else:
-            logger.error("No Container Name provided")
+            self.logger.error("No Container Name provided")
 
     def delete_exception_container(self, container_name=None, list_id=None):
         if container_name and not list_id:
@@ -696,29 +714,29 @@ class kibana:
             if container:
                 list_id = container["list_id"]
             else:
-                logger.error("No Container found")
+                self.logger.error("No Container found")
         if list_id:
             url = self.base_url + "/api/exception_lists?list_id=" + list_id
             return self._delete(url)
         else:
-            logger.error("No Container Name or List ID provided")
+            self.logger.error("No Container Name or List ID provided")
 
     def attach_container_to_rule(
-        self, container_name=None, rule_name=None, list_id=None
+            self, container_name=None, rule_name=None, list_id=None
     ):
         if container_name and not list_id:
             container = self.get_exception_container(container_name)
             if container:
                 list_id = container["list_id"]
             else:
-                logger.error("No Container found")
+                self.logger.error("No Container found")
 
     def post_get_alerts(
-        self,
-        filter_closed: bool = True,
-        fields: dict = None,
-        size: int = 1000,
-        filter_terms: dict = None,
+            self,
+            filter_closed: bool = True,
+            fields: dict = None,
+            size: int = 1000,
+            filter_terms: dict = None,
     ):
         url = self.base_url + "/api/detection_engine/signals/search"
         print(url)
@@ -766,10 +784,10 @@ class kibana:
         self._post(url, payload)
 
     def create_rule_exception_items(
-        self: object,
-        rule_id: str,
-        items: list[dict[str, any]],
-        space: str | None = None,
+            self: object,
+            rule_id: str,
+            items: list[dict[str, any]],
+            space: str | None = None,
     ) -> dict[str, any]:
         """
         Create exception items that apply to a single detection rule.
@@ -800,9 +818,9 @@ class kibana:
         return resp.json()
 
     def get_saved_objects(
-        self: object,
-        type: str,
-        space: str | None = None,
+            self: object,
+            type: str,
+            space: str | None = None,
     ) -> list[dict, any]:
         """
         Get Saved objects by type
@@ -859,7 +877,7 @@ class kibana:
         return response
 
     def update_connector(
-        self, connector_id: int, config: object, space: str = None
+            self, connector_id: int, config: object, space: str = None
     ) -> list[dict, any]:
         """
         Update a connector defined in kibana.
@@ -877,14 +895,14 @@ class kibana:
         return response
 
     def generate_attack_discovery(
-        self,
-        connectorName: str,
-        connector_id: str,
-        alertsIndexPattern: str = ".alerts-security.alerts-default",
-        size: int = 100,
-        anonymizationFields: dict = None,
-        filter: dict = None,
-        space: str = None,
+            self,
+            connectorName: str,
+            connector_id: str,
+            alertsIndexPattern: str = ".alerts-security.alerts-default",
+            size: int = 100,
+            anonymizationFields: dict = None,
+            filter: dict = None,
+            space: str = None,
     ) -> list[dict, any]:
         """
         Run Attack Discovery.
@@ -1840,9 +1858,9 @@ class kibana:
         return response.json()
 
     def get_attack_discovery(
-        self,
-        attack_discovery_id: int = None,
-        space: str = None,
+            self,
+            attack_discovery_id: int = None,
+            space: str = None,
     ) -> list[dict, any]:
         """
         Run Attack Discovery by ID or optionall all.
@@ -1871,9 +1889,9 @@ class kibana:
             return url
 
     def find_attack_discoveries(
-        self,
-        status: str = None,
-        space: str = None,
+            self,
+            status: str = None,
+            space: str = None,
     ) -> list[dict, any]:
         """
         Find attack discoveries
@@ -1888,9 +1906,9 @@ class kibana:
         return response
 
     def share_attack_discoveries(
-        self,
-        ids: list[int],
-        space: str = None,
+            self,
+            ids: list[int],
+            space: str = None,
     ) -> list[dict, any]:
         """
         Share a list of attack discovery IDs.
