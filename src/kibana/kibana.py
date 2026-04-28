@@ -347,6 +347,14 @@ class kibana:
         else:
             self.logger.error("No Package Name provided")
 
+    def get_packages(self, package_name=None):
+        if package_name:
+            url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
+            return self._get(url)["item"]
+        else:
+            url = self.base_url + "/api/fleet/epm/packages"
+            return self._get(url)["items"]
+
     def delete_package(self, package_name=None):
         if package_name:
             url = self.base_url + "/api/fleet/epm/packages/" + package_name.lower()
