@@ -661,15 +661,25 @@ class kibana:
             self, rule_ids=None, action="enable", query=None, edit=None, duplicate=None
     ):
         if rule_ids:
-            payload = {"ids": rule_ids, "action": action}
-            if query:
-                payload["query"] = query
-            if edit:
-                payload["edit"] = edit
-            if duplicate:
-                payload["duplicate"] = duplicate
-            url = self.base_url + "/api/detection_engine/rules/_bulk_action"
-            return self._post(url, payload)
+            # API limit: 100 rules per request
+            MAX_RULES_PER_REQUEST = 100
+            results = []
+            
+            # Split rule_ids into chunks of 100
+            for i in range(0, len(rule_ids), MAX_RULES_PER_REQUEST):
+                chunk = rule_ids[i:i + MAX_RULES_PER_REQUEST]
+                payload = {"ids": chunk, "action": action}
+                if query:
+                    payload["query"] = query
+                if edit:
+                    payload["edit"] = edit
+                if duplicate:
+                    payload["duplicate"] = duplicate
+                url = self.base_url + "/api/detection_engine/rules/_bulk_action"
+                result = self._post(url, payload)
+                results.append(result)
+            
+            return results
         else:
             self.logger.error("No Rules ids provided")
 
