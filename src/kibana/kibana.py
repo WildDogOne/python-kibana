@@ -232,6 +232,79 @@ class kibana:
             self.logger.error(f"Unable to POST\nStatus Code: {response.status_code}")
             self.logger.error(response.json())
 
+    def create_observability_alert_rule(
+            self,
+            rule: str = None,
+            rule_id: str = None,
+            space: str = None,
+
+    ) -> bool:
+
+        """
+        Create a dataview
+        :param rule: JSON Rule File to push
+        :param rule_id: Rule ID
+        :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
+        :return: Parsed JSON response.
+        """
+
+        if space:
+            path = f"/s/{space}/api/alerting/rule/{rule_id}"
+        else:
+            path = f"/api/alerting/rule/{rule_id}"
+        url = self.base_url + path
+        response = self._post(url, payload=rule, headers=self.headers)
+        return response
+
+    def update_observability_alert_rule(
+            self,
+            rule: str = None,
+            rule_id: str = None,
+            space: str = None,
+
+    ) -> bool:
+
+        """
+        Create a dataview
+        :param rule: JSON Rule File to push
+        :param rule_id: Rule ID
+        :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
+        :return: Parsed JSON response.
+        """
+
+        if space:
+            path = f"/s/{space}/api/alerting/rule/{rule_id}"
+        else:
+            path = f"/api/alerting/rule/{rule_id}"
+        url = self.base_url + path
+        response = self._put(url, payload=rule, headers=self.headers)
+        return response
+
+    def find_observability_alert_rule(
+            self,
+            search: str = None,
+            search_fields: str = None,
+            space: str = None,
+
+    ) -> dict:
+
+        """
+        Create a dataview
+        :param search: Search String
+        :param search_fields: Fields to search
+        :param space: Optional Kibana space id; if set, prefix path with /s/{space}.
+        :return: Parsed JSON response.
+        """
+
+        if space:
+            path = f"/s/{space}/api/alerting/rules/_find"
+        else:
+            path = "/api/alerting/rules/_find"
+        url = self.base_url + path
+        params = {"search": search, "search_fields": search_fields}
+        response = self._get_pagination(url, headers=self.headers, params=params)
+        return response
+
     def create_dataview(
             self,
             name: str,
@@ -664,7 +737,7 @@ class kibana:
             # API limit: 100 rules per request
             MAX_RULES_PER_REQUEST = 100
             results = []
-            
+
             # Split rule_ids into chunks of 100
             for i in range(0, len(rule_ids), MAX_RULES_PER_REQUEST):
                 chunk = rule_ids[i:i + MAX_RULES_PER_REQUEST]
@@ -678,7 +751,7 @@ class kibana:
                 url = self.base_url + "/api/detection_engine/rules/_bulk_action"
                 result = self._post(url, payload)
                 results.append(result)
-            
+
             return results
         else:
             self.logger.error("No Rules ids provided")
