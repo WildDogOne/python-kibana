@@ -59,7 +59,10 @@ class kibana:
             }
             self.api_key = True
         else:
-            self.headers = headers
+            self.headers = {
+                "Accept": "application/json",
+                "kbn-xsrf": "",
+            }
             self.api_key = False
         self.ssl_verify = ssl_verify
 
