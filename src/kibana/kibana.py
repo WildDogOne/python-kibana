@@ -911,6 +911,22 @@ class kibana:
         )
         return resp.json()
 
+    def get_workflows(self):
+        url = self.base_url + "/api/workflows"
+        params = {"size": 100, "page": 1}
+        workflows = []
+        while True:
+            resp = self._get(
+                url,
+                params=params,
+            )
+            workflows.extend(resp["results"])
+            if resp["total"] <= len(workflows):
+                break
+            else:
+                params["page"] = params["page"] + 1
+        return workflows
+
     def get_saved_objects(
             self: object,
             type: str,
